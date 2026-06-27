@@ -125,22 +125,67 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [selectedService, setSelectedService] = useState("Computer");
 
+  // Review submission state hooks
+  const [isReviewOpen, setIsReviewOpen] = useState(false);
+  const [reviewName, setReviewName] = useState("");
+  const [reviewCity, setReviewCity] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewService, setReviewService] = useState("");
+  const [reviewContent, setReviewContent] = useState("");
+  const [reviewAvatar, setReviewAvatar] = useState("");
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState("");
+
   const openInquiryForService = (service: string) => {
     setSelectedService(service);
     setIsInquiryOpen(true);
   };
 
-  const activeServices = services && services.length > 0 ? services : [
-    { id: "1", name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail computer systems.", category: "Sales" },
-    { id: "2", name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops from leading brands.", category: "Sales" },
-    { id: "3", name: "Computer Repair", icon: "Wrench", description: "Hardware diagnostics, motherboard repair, component replacement, and system optimization.", category: "Repair" },
-    { id: "4", name: "Laptop Repair", icon: "Cpu", description: "Screen replacement, keyboard fix, battery swapping, and advanced chip-level diagnostics.", category: "Repair" },
-    { id: "5", name: "Networking Solutions", icon: "Wifi", description: "Structured LAN/WAN cabling, enterprise-grade routers, high-throughput switch networks, and WiFi audits.", category: "Networking" },
-    { id: "6", name: "CCTV Installation", icon: "Video", description: "High-fidelity IP security camera deployments, NVR storage setups, and remote mobile viewing links.", category: "CCTV" },
-    { id: "7", name: "Printer Services", icon: "Printer", description: "Printer setup, toner refilling, scanner configuration, and routine printing hardware servicing.", category: "Services" },
-    { id: "8", name: "Accessories", icon: "Keyboard", description: "Mechanical keypads, high-precision mice, SSD expansions, cables, and premium tech accessories.", category: "Sales" },
-    { id: "9", name: "Annual Maintenance Contracts (AMC)", icon: "ShieldCheck", description: "Comprehensive round-the-clock IT support, backup monitoring, and systems AMC for offices.", category: "AMC" }
-  ];
+  const activeServices = (services || []).filter((s) => s.active);
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reviewName || !reviewContent) {
+      setReviewMessage("Please fill in your name and review details.");
+      return;
+    }
+    setReviewSubmitting(true);
+    setReviewMessage("");
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/testimonials`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: reviewName,
+          city: reviewCity,
+          rating: reviewRating,
+          serviceUsed: reviewService,
+          content: reviewContent,
+          avatarUrl: reviewAvatar,
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setReviewMessage("Thank you! Your review has been submitted and is pending administrator approval.");
+        setTimeout(() => {
+          setIsReviewOpen(false);
+          setReviewName("");
+          setReviewCity("");
+          setReviewRating(5);
+          setReviewService("");
+          setReviewContent("");
+          setReviewAvatar("");
+          setReviewMessage("");
+        }, 3000);
+      } else {
+        setReviewMessage(data.message || "Failed to submit review. Please try again.");
+      }
+    } catch (err) {
+      setReviewMessage("Failed to connect to the backend server. Please try again.");
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -252,38 +297,38 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
               transition={{ duration: 0.6 }}
               className="glass-card rounded-xl p-8 border border-white/10 shadow-xl space-y-6"
             >
-              <h3 className="text-lg font-bold font-display text-white">Our Operational Track Record</h3>
+              <h3 className="text-sm font-bold font-display text-white uppercase tracking-wider">Company Achievements</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-white font-display">
-                    <AnimatedCounter value={cms.stat_experience_value || "2+"} />
-                  </span>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
-                    {cms.stat_experience_label || "Years of Experience"}
-                  </span>
-                </div>
-                <div className="space-y-1">
                   <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">
-                    <AnimatedCounter value={cms.stat_assembled_value || "350+"} />
+                    <AnimatedCounter value={cms.Experience || "2+"} />
                   </span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
-                    {cms.stat_assembled_label || "Computer Systems Assembled"}
+                    Years Experience
                   </span>
                 </div>
                 <div className="space-y-1">
                   <span className="block text-3xl font-extrabold text-white font-display">
-                    <AnimatedCounter value={cms.stat_cctv_value || "40+"} />
+                    <AnimatedCounter value={cms.SystemsInstalled || "350+"} />
                   </span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
-                    {cms.stat_cctv_label || "Active CCTV Nodes Installed"}
+                    Systems Assembled
                   </span>
                 </div>
                 <div className="space-y-1">
                   <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">
-                    <AnimatedCounter value={cms.stat_partner_value || "Trusted"} />
+                    <AnimatedCounter value={cms.CCTVNodes || "40+"} />
                   </span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
-                    {cms.stat_partner_label || "IT Partner for Homes & Businesses"}
+                    CCTV Nodes Deployed
+                  </span>
+                </div>
+                <div className="space-y-1">
+                  <span className="block text-3xl font-extrabold text-white font-display">
+                    <AnimatedCounter value={cms.HappyClients || "100%"} />
+                  </span>
+                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
+                    Happy Clients
                   </span>
                 </div>
               </div>
@@ -500,55 +545,80 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
         <div className="mx-auto max-w-7xl">
           <div className="text-center space-y-4 max-w-xl mx-auto mb-16">
             <div className="text-[#00e3fd] font-geist text-[10px] uppercase font-bold tracking-widest">Client Feedback</div>
-            <h2 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tight">Trust & Performance</h2>
+            <h2 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tight">
+              {cms.review_heading || "Trust & Performance"}
+            </h2>
             <p className="text-white/50 text-xs font-sans">
               See what business operational heads and private clients say about our service SLAs and system integration skills.
             </p>
+            <div className="pt-2">
+              <button
+                onClick={() => setIsReviewOpen(true)}
+                className="px-5 py-2.5 rounded-lg border border-[#00e3fd]/30 hover:border-[#00e3fd] bg-[#00e3fd]/5 hover:bg-[#00e3fd]/10 text-[#00e3fd] font-bold text-xs transition-all duration-200"
+              >
+                Leave a Review
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((test, index) => (
-              <motion.div
-                key={test.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="glass-card rounded-xl border border-white/5 p-6 md:p-8 flex flex-col justify-between shadow-lg"
-              >
-                <div className="space-y-4">
-                  <div className="flex items-center gap-1 text-[#00e3fd]">
-                    {[...Array(test.rating)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-current" />
-                    ))}
-                  </div>
-                  <p className="text-white/70 text-xs font-sans leading-relaxed italic">
-                    "{test.content}"
-                  </p>
-                </div>
-                <div className="flex items-center gap-4 pt-6 border-t border-white/5 mt-6">
-                  {test.avatarUrl ? (
-                    <div className="relative h-10 w-10 rounded-full overflow-hidden border border-white/10 shrink-0">
-                      <Image
-                        src={test.avatarUrl}
-                        alt={test.customerName}
-                        fill
-                        sizes="40px"
-                        className="object-cover"
-                      />
+            {testimonials.length === 0 ? (
+              <div className="col-span-1 md:col-span-3 text-center py-12 glass-card rounded-xl border border-white/5 bg-black/10">
+                <p className="text-white/40 text-xs font-sans">No customer reviews available yet. Be the first to share your experience!</p>
+              </div>
+            ) : (
+              testimonials.map((test, index) => (
+                <motion.div
+                  key={test.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                  className="glass-card rounded-xl border border-white/5 p-6 md:p-8 flex flex-col justify-between shadow-lg"
+                >
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-1 text-[#00e3fd]">
+                      {[...Array(test.rating)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-current" />
+                      ))}
                     </div>
-                  ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 font-bold text-xs text-white">
-                      {test.customerName.charAt(0)}
-                    </div>
-                  )}
-                  <div className="font-sans">
-                    <div className="text-xs font-bold text-white leading-none">{test.customerName}</div>
-                    <div className="text-[10px] text-white/40 mt-1">{test.role || "Verified Client"}</div>
+                    <p className="text-white/70 text-xs font-sans leading-relaxed italic">
+                      "{test.content}"
+                    </p>
+                    {test.replyFromBusiness && (
+                      <div className="mt-4 p-3 rounded bg-white/5 border-l-2 border-[#00e3fd] text-[11px] font-sans">
+                        <span className="font-bold text-white block mb-0.5">Response from HD Tech Solutions:</span>
+                        <p className="text-white/60 leading-relaxed italic">"{test.replyFromBusiness}"</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                  <div className="flex items-center gap-4 pt-6 border-t border-white/5 mt-6">
+                    {test.avatarUrl ? (
+                      <div className="relative h-10 w-10 rounded-full overflow-hidden border border-white/10 shrink-0">
+                        <Image
+                          src={test.avatarUrl}
+                          alt={test.customerName}
+                          fill
+                          sizes="40px"
+                          className="object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 font-bold text-xs text-white">
+                        {test.customerName.charAt(0)}
+                      </div>
+                    )}
+                    <div className="font-sans">
+                      <div className="text-xs font-bold text-white leading-none">
+                        {test.customerName}
+                        {test.verified && <span className="ml-1.5 text-[8px] bg-[#00e3fd]/10 text-[#00e3fd] border border-[#00e3fd]/20 rounded-full px-1.5 py-0.5 font-bold uppercase tracking-wider">Verified</span>}
+                      </div>
+                      <div className="text-[10px] text-white/40 mt-1">{test.city || "Verified Client"}</div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -670,6 +740,118 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
         onClose={() => setIsInquiryOpen(false)}
         defaultService={selectedService}
       />
+
+      {/* Review Submission Modal */}
+      {isReviewOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="w-full max-w-lg rounded-xl border border-white/10 bg-[#101415] p-6 shadow-2xl space-y-4 relative overflow-hidden"
+          >
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#00e3fd] to-[#2380ff]" />
+            <div className="flex justify-between items-center">
+              <h3 className="text-base font-bold font-display text-white">Share Your Feedback</h3>
+              <button
+                onClick={() => setIsReviewOpen(false)}
+                className="text-white/40 hover:text-white text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
+            
+            <form onSubmit={handleSubmitReview} className="space-y-3.5 text-xs">
+              {reviewMessage && (
+                <div className="p-3 rounded-lg bg-[#00e3fd]/10 border border-[#00e3fd]/20 text-[#00e3fd] font-medium leading-relaxed">
+                  {reviewMessage}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-white/60 font-semibold block">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={reviewName}
+                    onChange={(e) => setReviewName(e.target.value)}
+                    placeholder="e.g. John Doe"
+                    className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-white/60 font-semibold block">Your City (Optional)</label>
+                  <input
+                    type="text"
+                    value={reviewCity}
+                    onChange={(e) => setReviewCity(e.target.value)}
+                    placeholder="e.g. Bhavnagar"
+                    className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="text-white/60 font-semibold block">Service Used (Optional)</label>
+                  <input
+                    type="text"
+                    value={reviewService}
+                    onChange={(e) => setReviewService(e.target.value)}
+                    placeholder="e.g. Laptop Repair"
+                    className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-white/60 font-semibold block">Rating *</label>
+                  <select
+                    value={reviewRating}
+                    onChange={(e) => setReviewRating(Number(e.target.value))}
+                    className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors bg-[#101415]"
+                  >
+                    <option value={5}>5 Stars - Excellent</option>
+                    <option value={4}>4 Stars - Good</option>
+                    <option value={3}>3 Stars - Average</option>
+                    <option value={2}>2 Stars - Poor</option>
+                    <option value={1}>1 Star - Terrible</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-white/60 font-semibold block">Avatar URL (Optional)</label>
+                <input
+                  type="url"
+                  value={reviewAvatar}
+                  onChange={(e) => setReviewAvatar(e.target.value)}
+                  placeholder="https://example.com/avatar.jpg"
+                  className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-white/60 font-semibold block">Your Review *</label>
+                <textarea
+                  required
+                  rows={4}
+                  value={reviewContent}
+                  onChange={(e) => setReviewContent(e.target.value)}
+                  placeholder="Share details of your experience..."
+                  className="w-full rounded bg-white/5 border border-white/10 p-2 text-white outline-none focus:border-[#00e3fd] transition-colors resize-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={reviewSubmitting}
+                className="w-full py-2.5 rounded bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold transition-all shadow-[0_0_15px_rgba(0,229,255,0.2)] disabled:opacity-50"
+              >
+                {reviewSubmitting ? "Submitting feedback..." : "Submit Review for Verification"}
+              </button>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </>
   );
 }

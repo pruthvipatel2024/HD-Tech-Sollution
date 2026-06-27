@@ -10,7 +10,7 @@ export async function getStats(req: AuthenticatedRequest, res: Response): Promis
     const totalInquiries = await prisma.inquiry.count();
     
     const unreadInquiries = await prisma.inquiry.count({
-      where: { status: "Unread" },
+      where: { status: "UNREAD" },
     });
 
     const startOfToday = new Date();

@@ -19,23 +19,27 @@ const prisma = new PrismaClient({ adapter });
 async function main() {
   console.log("Seeding started...");
 
-  // 1. Create Roles
+  // 1. Create Roles with permissions matching plan
   console.log("Seeding roles...");
   const superAdminRole = await prisma.role.upsert({
     where: { name: "Super Admin" },
-    update: { permissions: ["*"] },
+    update: {
+      permissions: ["PRODUCT_MGT", "GALLERY_MGT", "REVIEW_APPR", "CMS_EDIT", "USER_MGT"],
+    },
     create: {
       name: "Super Admin",
-      permissions: ["*"],
+      permissions: ["PRODUCT_MGT", "GALLERY_MGT", "REVIEW_APPR", "CMS_EDIT", "USER_MGT"],
     },
   });
 
-  const adminRole = await prisma.role.upsert({
-    where: { name: "Admin" },
-    update: { permissions: ["manage_products", "manage_gallery", "manage_inquiries"] },
+  const managerRole = await prisma.role.upsert({
+    where: { name: "Manager" },
+    update: {
+      permissions: ["PRODUCT_MGT", "GALLERY_MGT", "REVIEW_APPR"],
+    },
     create: {
-      name: "Admin",
-      permissions: ["manage_products", "manage_gallery", "manage_inquiries"],
+      name: "Manager",
+      permissions: ["PRODUCT_MGT", "GALLERY_MGT", "REVIEW_APPR"],
     },
   });
 
@@ -68,9 +72,8 @@ async function main() {
     { name: "Printer", slug: "printer" },
   ];
 
-  const dbCategories: any[] = [];
   for (const cat of categories) {
-    const dbCat = await prisma.category.upsert({
+    await prisma.category.upsert({
       where: { slug: cat.slug },
       update: { name: cat.name },
       create: {
@@ -78,212 +81,44 @@ async function main() {
         slug: cat.slug,
       },
     });
-    dbCategories.push(dbCat);
   }
 
   // 4. Create Services
   console.log("Seeding services...");
   const services = [
-    { name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail computer systems.", category: "Sales", isCore: true },
-    { name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops from leading brands.", category: "Sales", isCore: true },
-    { name: "Computer Repair", icon: "Wrench", description: "Hardware diagnostics, motherboard repair, component replacement, and system optimization.", category: "Repair", isCore: true },
-    { name: "Laptop Repair", icon: "Cpu", description: "Screen replacement, keyboard fix, battery swapping, and advanced chip-level diagnostics.", category: "Repair", isCore: true },
-    { name: "Networking Solutions", icon: "Wifi", description: "Structured LAN/WAN cabling, enterprise-grade routers, high-throughput switch networks, and WiFi audits.", category: "Networking", isCore: true },
-    { name: "CCTV Installation", icon: "Video", description: "High-fidelity IP security camera deployments, NVR storage setups, and remote mobile viewing links.", category: "CCTV", isCore: true },
-    { name: "Printer Services", icon: "Printer", description: "Printer setup, toner refilling, scanner configuration, and routine printing hardware servicing.", category: "Services", isCore: false },
-    { name: "Accessories", icon: "Keyboard", description: "Mechanical keypads, high-precision mice, SSD expansions, cables, and premium tech accessories.", category: "Sales", isCore: false },
-    { name: "Annual Maintenance Contracts (AMC)", icon: "ShieldCheck", description: "Comprehensive round-the-clock IT support, backup monitoring, and systems AMC for offices.", category: "AMC", isCore: true }
+    { name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail computer systems.", displayOrder: 1, featured: true, active: true },
+    { name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops from leading brands.", displayOrder: 2, featured: true, active: true },
+    { name: "Computer Repair", icon: "Wrench", description: "Hardware diagnostics, motherboard repair, component replacement, and system optimization.", displayOrder: 3, featured: true, active: true },
+    { name: "Laptop Repair", icon: "Cpu", description: "Screen replacement, keyboard fix, battery swapping, and advanced chip-level diagnostics.", displayOrder: 4, featured: true, active: true },
+    { name: "Networking Solutions", icon: "Wifi", description: "Structured LAN/WAN cabling, enterprise-grade routers, high-throughput switch networks, and WiFi audits.", displayOrder: 5, featured: true, active: true },
+    { name: "CCTV Installation", icon: "Video", description: "High-fidelity IP security camera deployments, NVR storage setups, and remote mobile viewing links.", displayOrder: 6, featured: true, active: true },
+    { name: "Printer Services", icon: "Printer", description: "Printer setup, toner refilling, scanner configuration, and routine printing hardware servicing.", displayOrder: 7, featured: false, active: true },
+    { name: "Accessories", icon: "Keyboard", description: "Mechanical keypads, high-precision mice, SSD expansions, cables, and premium tech accessories.", displayOrder: 8, featured: false, active: true },
+    { name: "Annual Maintenance Contracts (AMC)", icon: "ShieldCheck", description: "Comprehensive round-the-clock IT support, backup monitoring, and systems AMC for offices.", displayOrder: 9, featured: true, active: true }
   ];
 
-  const dbServices: any[] = [];
   for (const srv of services) {
-    const dbSrv = await prisma.service.upsert({
+    await prisma.service.upsert({
       where: { name: srv.name },
       update: {
         icon: srv.icon,
         description: srv.description,
-        category: srv.category,
-        isCore: srv.isCore,
+        displayOrder: srv.displayOrder,
+        featured: srv.featured,
+        active: srv.active,
       },
       create: {
         name: srv.name,
         icon: srv.icon,
         description: srv.description,
-        category: srv.category,
-        isCore: srv.isCore,
+        displayOrder: srv.displayOrder,
+        featured: srv.featured,
+        active: srv.active,
       },
     });
-    dbServices.push(dbSrv);
   }
 
-  // 5. Create Products & Product Images
-  console.log("Seeding products...");
-  const desktopCat = dbCategories.find(c => c.slug === "desktop");
-  const gamingCat = dbCategories.find(c => c.slug === "gaming-pc");
-  const laptopCat = dbCategories.find(c => c.slug === "laptop");
-  const accessoriesCat = dbCategories.find(c => c.slug === "accessories");
-  const cctvCat = dbCategories.find(c => c.slug === "cctv");
-  const networkingCat = dbCategories.find(c => c.slug === "networking");
-
-  const productsData = [
-    {
-      name: "Crystalline Quantum Workstation",
-      description: "Intel Core i9 14900K, 64GB DDR5 RAM, 2TB NVMe SSD, NVIDIA RTX 4080 Super. Built for professional 3D, CAD, and local AI computation models.",
-      price: 2499.99,
-      availability: true,
-      categoryId: desktopCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      name: "Helix Stream Gaming PC",
-      description: "AMD Ryzen 7 7800X3D, Liquid AIO Cooler, 32GB RGB RAM, RTX 4070 Ti. Optimised for maximum frame output in high refresh 4K gaming.",
-      price: 1899.99,
-      availability: true,
-      categoryId: gamingCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1593640408182-31c70c8268f5?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      name: "AeroBook Pro 16",
-      description: "16\" OLED display, 32GB RAM, 1TB SSD, Next-gen CPU. Battery lifespan rated at 18 hours. Sleek CNC aluminum anodized finish.",
-      price: 1999.00,
-      availability: true,
-      categoryId: laptopCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      name: "SecurX Dome CCTV Camera",
-      description: "4K Resolution, IP67 Waterproof, Night Vision with integrated AI tracking for intruder alerts. Ideal for retail and warehouses.",
-      price: 149.99,
-      availability: true,
-      categoryId: cctvCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      name: "AX6000 WiFi 6 Router",
-      description: "Dual-band WiFi 6 Router, Quad-Core processor, 8x Gigabit LAN ports. Supports up to 200 client nodes simultaneously.",
-      price: 349.50,
-      availability: true,
-      categoryId: networkingCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1631553127988-5f750d4f1073?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      name: "Obsidian Mechanical Keyboard",
-      description: "Hot-swappable linear key switches, CNC aluminum board base, triple-mode Bluetooth and USB-C connectivity.",
-      price: 129.99,
-      availability: true,
-      categoryId: accessoriesCat.id,
-      imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?auto=format&fit=crop&q=80&w=800"
-    }
-  ];
-
-  for (const prod of productsData) {
-    const dbProd = await prisma.product.create({
-      data: {
-        name: prod.name,
-        description: prod.description,
-        price: prod.price,
-        availability: prod.availability,
-        categoryId: prod.categoryId,
-      }
-    });
-
-    await prisma.productImage.create({
-      data: {
-        url: prod.imageUrl,
-        productId: dbProd.id
-      }
-    });
-  }
-
-  // 6. Create Gallery Items & Gallery Images
-  console.log("Seeding gallery...");
-  const cctvService = dbServices.find(s => s.name === "CCTV Installation") || dbServices[0];
-  const netService = dbServices.find(s => s.name === "Networking Solutions") || dbServices[0];
-  const salesService = dbServices.find(s => s.name === "Computer Sales") || dbServices[0];
-
-  const galleryData = [
-    {
-      title: "Vortex HQ Surveillance Deployment",
-      description: "Integrated 32-camera surveillance matrix with automated local NVR array storage and network remote configuration.",
-      location: "Corporate District, NY",
-      serviceId: cctvService.id,
-      featured: true,
-      order: 1,
-      imageUrl: "https://images.unsplash.com/photo-1557862921-37829c790f19?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      title: "NexaCorp Multi-Floor WiFi Network",
-      description: "Structured Cat6 layout design and deployment of 8 load-balanced wireless access points for unified staff roaming.",
-      location: "Financial Hub, CA",
-      serviceId: netService.id,
-      featured: true,
-      order: 2,
-      imageUrl: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=800"
-    },
-    {
-      title: "Design Studio PC Workstations Build",
-      description: "Commissioned assembly and benchmark testing of 5 rendering workstations with liquid loop setups.",
-      location: "Soho Arts, NY",
-      serviceId: salesService.id,
-      featured: false,
-      order: 3,
-      imageUrl: "https://images.unsplash.com/photo-1587831990711-23ca6441447b?auto=format&fit=crop&q=80&w=800"
-    }
-  ];
-
-  for (const item of galleryData) {
-    const dbGal = await prisma.gallery.create({
-      data: {
-        title: item.title,
-        description: item.description,
-        location: item.location,
-        serviceId: item.serviceId,
-        featured: item.featured,
-        order: item.order,
-      }
-    });
-
-    await prisma.galleryImage.create({
-      data: {
-        url: item.imageUrl,
-        galleryId: dbGal.id
-      }
-    });
-  }
-
-  // 7. Create Testimonials
-  console.log("Seeding testimonials...");
-  const testimonials = [
-    {
-      customerName: "Sarah Jenkins",
-      role: "IT Director, NexaCorp",
-      content: "HD Tech Solutions overhauled our entire office networking infrastructure. Their staff was professional, fast, and the WiFi coverage is flawless throughout our 3-story office building.",
-      rating: 5,
-      avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150",
-    },
-    {
-      customerName: "Marcus Vance",
-      role: "Operations Head, Helix Retail",
-      content: "The CCTV security system installed by their team is top-notch. Clear night vision, easy mobile access, and zero downtime since deployment. Highly recommended!",
-      rating: 5,
-      avatarUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150",
-    },
-    {
-      customerName: "Devon Carter",
-      role: "Lead Software Architect",
-      content: "I ordered a custom AI workstation. The cable management, thermal throttling tests, and overall performance tuning they did exceeded my expectations. Outstanding build quality.",
-      rating: 5,
-      avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150",
-    },
-  ];
-
-  for (const test of testimonials) {
-    await prisma.testimonial.create({
-      data: test
-    });
-  }
-
-  // 8. Create Brands
+  // 5. Create Brands
   console.log("Seeding brands...");
   const brands = [
     { name: "HP", logoUrl: "https://upload.wikimedia.org/wikipedia/commons/2/29/HP_New_Logo_2d.svg" },
@@ -302,39 +137,65 @@ async function main() {
     });
   }
 
-  // 9. Create CMS Settings
+  // 6. Create CMS Settings (Extended with columns type, group, description)
   console.log("Seeding CMS settings...");
   const cmsSettings = [
-    { key: "hero_title", value: "Smart Technology. Better Solutions." },
-    { key: "hero_subtitle", value: "One Stop Solution For All Your IT Needs." },
-    { key: "about_title", value: "Expert Tech Infrastructure & Services" },
-    { key: "about_text", value: "At HD Tech Solutions, we specialize in high-quality computer sales, laptop sales, networking solutions, CCTV installation, computer repair, laptop repair, accessories, AMC services, and complete office IT setups. With over 2 years of active industry experience and a firm customer-first approach, we aim to provide reliable, top-tier technology support and maintenance services tailored to the needs of both local homes and businesses." },
-    { key: "company_name", value: "HD Tech Solutions" },
-    { key: "contact_address", value: "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001" },
-    { key: "contact_phone", value: "+91 75758 24006" },
-    { key: "contact_whatsapp", value: "917575824006" },
-    { key: "contact_email", value: "harshildumaniya28@gmail.com" },
-    { key: "business_hours", value: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed" },
-    { key: "google_maps_url", value: "https://maps.google.com/?q=Q4JX%2BM5Q%2C%20Mama%20Kotha%20Road%2C%20Near%20Khara%20Kuva%2C%20Hira%20Street%2C%20Karchaliya%20Para%2C%20Bhavnagar%2C%20Gujarat%20364001" },
-    { key: "social_facebook", value: "https://facebook.com" },
-    { key: "social_instagram", value: "https://instagram.com" },
-    { key: "social_linkedin", value: "https://linkedin.com" },
-    { key: "stat_experience_value", value: "2+" },
-    { key: "stat_experience_label", value: "Years of Experience" },
-    { key: "stat_assembled_value", value: "350+" },
-    { key: "stat_assembled_label", value: "Computer Systems Assembled" },
-    { key: "stat_cctv_value", value: "40+" },
-    { key: "stat_cctv_label", value: "Active CCTV Nodes Installed" },
-    { key: "stat_partner_value", value: "Trusted" },
-    { key: "stat_partner_label", value: "IT Partner for Homes & Businesses" },
-    { key: "why_choose_us_pillars", value: "Genuine Products, Certified Technicians, Affordable Pricing, Fast Support, Professional Installation, Warranty Assistance, After-Sales Support, Customer Satisfaction" }
+    // Hero Group
+    { key: "hero_title", value: "Smart Technology. Better Solutions.", type: "text", group: "Hero", description: "The main bold heading of the homepage hero." },
+    { key: "hero_subtitle", value: "One Stop Solution For All Your IT Needs.", type: "text", group: "Hero", description: "The secondary tagline under the hero title." },
+    { key: "hero_bg_image", value: "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1600", type: "image", group: "Hero", description: "Hero section dynamic background image URL." },
+    
+    // About Group
+    { key: "about_title", value: "Expert Tech Infrastructure & Services", type: "text", group: "About", description: "About us section block title." },
+    { key: "about_text", value: "At HD Tech Solutions, we specialize in high-quality computer sales, laptop sales, networking solutions, CCTV installation, computer repair, laptop repair, accessories, AMC services, and complete office IT setups. With over 2 years of active industry experience and a firm customer-first approach, we aim to provide reliable, top-tier technology support and maintenance services tailored to the needs of both local homes and businesses.", type: "text", group: "About", description: "About us detailed descriptive text paragraph." },
+    
+    // Why Choose Us Group
+    { key: "why_choose_us_title", value: "Why Choose Us", type: "text", group: "Why Choose Us", description: "Heading for the Choose section." },
+    { key: "why_choose_us_subtitle", value: "We combine enterprise-level engineering standards with personalized local support to deliver unmatched technological reliability.", type: "text", group: "Why Choose Us", description: "Tagline text for the Choose section." },
+    
+    // General Settings
+    { key: "company_name", value: "HD Tech Solutions", type: "text", group: "General", description: "Company branding name." },
+    { key: "company_logo", value: "", type: "image", group: "General", description: "Brand logo image URL." },
+    { key: "company_favicon", value: "", type: "image", group: "General", description: "Site favicon shortcut URL." },
+    { key: "company_og_image", value: "", type: "image", group: "General", description: "Open Graph default metadata social card preview image." },
+
+    // Contact Details
+    { key: "contact_address", value: "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001", type: "text", group: "Contact", description: "The physical street address of the retail office." },
+    { key: "contact_phone", value: "+91 75758 24006", type: "text", group: "Contact", description: "Hotline customer voice support line." },
+    { key: "contact_whatsapp", value: "917575824006", type: "text", group: "Contact", description: "WhatsApp number query (no spaces or plus prefix)." },
+    { key: "contact_email", value: "harshildumaniya28@gmail.com", type: "text", group: "Contact", description: "Corporate help mailbox address." },
+    { key: "business_hours", value: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed", type: "text", group: "Contact", description: "Operational working hours display string." },
+    { key: "google_maps_url", value: "https://maps.google.com/?q=Q4JX%2BM5Q%2CMama%20Kotha%20Road%2CNear%20Khara%20Kuva%2CHira%20Street%2CKarchaliya%20Para%2CBhavnagar%2CGujarat%20364001", type: "text", group: "Contact", description: "Full maps.google directions redirect link." },
+    { key: "google_maps_embed", value: "https://maps.google.com/maps?q=Q4JX%2BM5Q%2CMama%20Kotha%20Road%2CNear%20Khara%20Kuva%2CHira%20Street%2CKarchaliya%20Para%2CBhavnagar%2CGujarat%20364001&t=&z=14&ie=UTF8&iwloc=&output=embed", type: "text", group: "Contact", description: "Google Maps iframe integration URL." },
+
+    // Social URLs
+    { key: "social_facebook", value: "https://facebook.com", type: "text", group: "Footer", description: "Facebook social handle link." },
+    { key: "social_instagram", value: "https://instagram.com", type: "text", group: "Footer", description: "Instagram social handle link." },
+    { key: "social_linkedin", value: "https://linkedin.com", type: "text", group: "Footer", description: "LinkedIn business profile URL." },
+
+    // Section Headings
+    { key: "gallery_heading", value: "Completed Projects", type: "text", group: "Gallery", description: "Heading for the work gallery." },
+    { key: "product_heading", value: "Our Hardware Inventory", type: "text", group: "Products", description: "Heading for the products page." },
+    { key: "review_heading", value: "Client Testimonials", type: "text", group: "Reviews", description: "Heading for customer review quotes." },
+
+    // Dynamic Achievements statistics
+    { key: "Experience", value: "2+", type: "text", group: "Statistics", description: "Achievement card 1: Active industry duration." },
+    { key: "SystemsInstalled", value: "350+", type: "text", group: "Statistics", description: "Achievement card 2: Custom PC towers built." },
+    { key: "CCTVNodes", value: "40+", type: "text", group: "Statistics", description: "Achievement card 3: CCTV video nodes deployed." },
+    { key: "HappyClients", value: "100%", type: "text", group: "Statistics", description: "Achievement card 4: Customer satisfaction metric." },
+    { key: "ProjectsCompleted", value: "500+", type: "text", group: "Statistics", description: "Achievement card 5: Total completed services." },
   ];
 
   for (const setting of cmsSettings) {
     await prisma.cmsSetting.upsert({
       where: { key: setting.key },
-      update: { value: setting.value },
-      create: setting
+      update: {
+        value: setting.value,
+        type: setting.type,
+        group: setting.group,
+        description: setting.description,
+      },
+      create: setting,
     });
   }
 

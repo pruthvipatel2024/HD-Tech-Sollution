@@ -87,13 +87,6 @@ export default function Navbar() {
 
           {/* Desktop CTAs */}
           <div className="hidden md:flex items-center gap-4">
-            <Link
-              href="/admin/dashboard"
-              className="text-white/60 hover:text-white transition-colors p-2 rounded-lg"
-              title="Admin Portal"
-            >
-              <ShieldAlert className="h-4 w-4" />
-            </Link>
             <button
               onClick={() => setIsInquiryOpen(true)}
               className="px-5 py-2 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold text-xs shadow-[0_0_15px_rgba(0,229,255,0.2)] hover:shadow-[0_0_25px_rgba(0,229,255,0.4)] transition-all duration-300"
@@ -104,12 +97,6 @@ export default function Navbar() {
 
           {/* Hamburger Mobile Button */}
           <div className="flex md:hidden items-center gap-3">
-            <Link
-              href="/admin/dashboard"
-              className="text-white/50 hover:text-white p-1"
-            >
-              <ShieldAlert className="h-4.5 w-4.5" />
-            </Link>
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="rounded-lg p-1.5 text-white/75 hover:bg-white/5 hover:text-white"

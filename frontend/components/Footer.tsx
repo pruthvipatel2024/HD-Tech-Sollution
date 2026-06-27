@@ -122,10 +122,6 @@ export default function Footer() {
         <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 font-sans text-xs text-white/40">
           <p>© {currentYear} HD Tech Solutions. All rights reserved.</p>
           <div className="flex gap-6">
-            <Link href="/admin/dashboard" className="hover:text-white transition-colors">
-              Admin Portal
-            </Link>
-            <span className="cursor-default">|</span>
             <span className="text-[#00e3fd]/60">Crystalline Design System</span>
           </div>
         </div>

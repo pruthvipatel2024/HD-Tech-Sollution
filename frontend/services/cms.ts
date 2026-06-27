@@ -43,7 +43,15 @@ export async function deleteBrand(id: string) {
   return res.data;
 }
 
-export async function createTestimonial(data: { customerName: string; role?: string; content: string; rating: number; avatarUrl?: string }) {
+export async function createTestimonial(data: {
+  customerName: string;
+  city?: string;
+  content: string;
+  rating: number;
+  avatarUrl?: string;
+  verified?: boolean;
+  serviceUsed?: string;
+}) {
   const res = await apiRequest("/testimonials", {
     method: "POST",
     body: JSON.stringify(data),
@@ -58,7 +66,17 @@ export async function deleteTestimonial(id: string) {
   return res.data;
 }
 
-export async function createService(data: { name: string; icon: string; description: string; category: string; isCore?: boolean }) {
+export async function createService(data: {
+  name: string;
+  icon: string;
+  description: string;
+  bannerUrl?: string;
+  displayOrder?: number;
+  featured?: boolean;
+  active?: boolean;
+  buttonText?: string;
+  buttonLink?: string;
+}) {
   const res = await apiRequest("/services", {
     method: "POST",
     body: JSON.stringify(data),

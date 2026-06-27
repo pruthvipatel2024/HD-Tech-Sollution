@@ -72,3 +72,22 @@ export async function requireAuth(
     res.status(500).json({ success: false, message: "An internal server error occurred" });
   }
 }
+
+export function checkPermission(permission: string) {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
+    if (!req.admin) {
+      res.status(401).json({ success: false, message: "Unauthorized: authentication required." });
+      return;
+    }
+
+    const { permissions } = req.admin.role;
+    if (permissions.includes(permission) || permissions.includes("manage_all") || permissions.includes("*")) {
+      next();
+    } else {
+      res.status(403).json({
+        success: false,
+        message: `Forbidden: you do not have the required permission (${permission}) to perform this action.`
+      });
+    }
+  };
+}

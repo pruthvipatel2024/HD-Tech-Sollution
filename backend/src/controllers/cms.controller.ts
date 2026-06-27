@@ -64,3 +64,15 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
     res.status(500).json({ success: false, message: "Failed to update configuration" });
   }
 }
+
+export async function adminGetSettings(req: Request, res: Response): Promise<void> {
+  try {
+    const settings = await prisma.cmsSetting.findMany({
+      orderBy: { key: "asc" }
+    });
+    res.status(200).json({ success: true, data: settings });
+  } catch (error) {
+    logger.error("Admin GET CMS settings error:", error);
+    res.status(500).json({ success: false, message: "Failed to retrieve configurations list" });
+  }
+}

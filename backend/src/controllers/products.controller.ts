@@ -16,6 +16,7 @@ export async function list(req: Request, res: Response): Promise<void> {
       where.OR = [
         { name: { contains: search as string, mode: "insensitive" } },
         { description: { contains: search as string, mode: "insensitive" } },
+        { sku: { contains: search as string, mode: "insensitive" } },
       ];
     }
 
@@ -30,13 +31,13 @@ export async function list(req: Request, res: Response): Promise<void> {
 
     const list = await prisma.product.findMany({
       where,
-      include: { images: true, category: true },
+      include: { images: true, category: true, brand: true },
       orderBy,
     });
 
     const mappedList = list.map((prod: any) => ({
       ...prod,
-      imageUrls: prod.images.map((img: any) => img.url),
+      imageUrls: prod.images ? prod.images.map((img: any) => img.url) : [],
     }));
 
     res.status(200).json({
@@ -62,7 +63,23 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
-    const { name, description, price, availability, categoryId, imageUrls } = parseResult.data;
+    const {
+      name,
+      slug,
+      description,
+      price,
+      availability,
+      categoryId,
+      brandId,
+      imageUrls,
+      sku,
+      modelNumber,
+      specifications,
+      warranty,
+      featured,
+      showPrice,
+      contactForPrice,
+    } = parseResult.data;
 
     // Verify category exists
     const category = await prisma.category.findUnique({
@@ -74,18 +91,29 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
+    const computedSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
     const product = await prisma.product.create({
       data: {
         name,
+        slug: computedSlug,
         description,
         price,
         availability,
         categoryId,
+        brandId: brandId || null,
+        sku: sku || null,
+        modelNumber: modelNumber || null,
+        specifications: specifications || null,
+        warranty: warranty || null,
+        featured,
+        showPrice,
+        contactForPrice,
         images: {
           create: imageUrls.map((url) => ({ url })),
         },
       },
-      include: { images: true, category: true },
+      include: { images: true, category: true, brand: true },
     });
 
     // Save Activity Log
@@ -100,7 +128,7 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedProduct = {
       ...product,
-      imageUrls: product.images.map((img: any) => img.url),
+      imageUrls: product.images ? product.images.map((img: any) => img.url) : [],
     };
 
     res.status(201).json({
@@ -128,7 +156,23 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
-    const { name, description, price, availability, categoryId, imageUrls } = parseResult.data;
+    const {
+      name,
+      slug,
+      description,
+      price,
+      availability,
+      categoryId,
+      brandId,
+      imageUrls,
+      sku,
+      modelNumber,
+      specifications,
+      warranty,
+      featured,
+      showPrice,
+      contactForPrice,
+    } = parseResult.data;
 
     // Check if product exists
     const existingProduct = await prisma.product.findUnique({
@@ -145,19 +189,30 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
       where: { productId: id },
     });
 
+    const computedSlug = slug || name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
     const updatedProduct = await prisma.product.update({
       where: { id },
       data: {
         name,
+        slug: computedSlug,
         description,
         price,
         availability,
         categoryId,
+        brandId: brandId || null,
+        sku: sku || null,
+        modelNumber: modelNumber || null,
+        specifications: specifications || null,
+        warranty: warranty || null,
+        featured,
+        showPrice,
+        contactForPrice,
         images: {
           create: imageUrls.map((url) => ({ url })),
         },
       },
-      include: { images: true, category: true },
+      include: { images: true, category: true, brand: true },
     });
 
     // Save Activity Log
@@ -172,7 +227,7 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedProduct = {
       ...updatedProduct,
-      imageUrls: updatedProduct.images.map((img: any) => img.url),
+      imageUrls: updatedProduct.images ? updatedProduct.images.map((img: any) => img.url) : [],
     };
 
     res.status(200).json({

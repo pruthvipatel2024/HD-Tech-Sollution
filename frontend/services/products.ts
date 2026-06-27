@@ -27,11 +27,20 @@ export async function getProducts(categoryId?: string, search?: string, sort?: s
 
 export async function createProduct(data: {
   name: string;
+  slug?: string;
   description: string;
-  price: number;
+  price?: number | null;
   availability: boolean;
   categoryId: string;
   imageUrls: string[];
+  sku?: string;
+  modelNumber?: string;
+  specifications?: string;
+  warranty?: string;
+  featured?: boolean;
+  showPrice?: boolean;
+  contactForPrice?: boolean;
+  brandId?: string | null;
 }) {
   const res = await apiRequest("/products", {
     method: "POST",
@@ -44,11 +53,20 @@ export async function updateProduct(
   id: string,
   data: {
     name: string;
+    slug?: string;
     description: string;
-    price: number;
+    price?: number | null;
     availability: boolean;
     categoryId: string;
     imageUrls: string[];
+    sku?: string;
+    modelNumber?: string;
+    specifications?: string;
+    warranty?: string;
+    featured?: boolean;
+    showPrice?: boolean;
+    contactForPrice?: boolean;
+    brandId?: string | null;
   }
 ) {
   const res = await apiRequest(`/products/${id}`, {
@@ -59,19 +77,8 @@ export async function updateProduct(
 }
 
 export async function deleteProduct(id: string) {
-  const res = await apiRequest(`/products/${id}`, { method: "DELETE" });
-  return res.data;
-}
-
-export async function createCategory(name: string) {
-  const res = await apiRequest("/categories", {
-    method: "POST",
-    body: JSON.stringify({ name }),
+  const res = await apiRequest(`/products/${id}`, {
+    method: "DELETE",
   });
-  return res.data;
-}
-
-export async function deleteCategory(id: string) {
-  const res = await apiRequest(`/categories/${id}`, { method: "DELETE" });
   return res.data;
 }

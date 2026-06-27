@@ -6,10 +6,12 @@ import galleryRoutes from "./gallery.routes";
 import inquiriesRoutes from "./inquiries.routes";
 import cmsRoutes from "./cms.routes";
 import brandsRoutes from "./brands.routes";
-import testimonialsRoutes from "./testimonials.routes";
-import uploadRoutes from "./upload.routes";
+import reviewsRoutes from "./reviews.routes";
+import mediaRoutes from "./media.routes";
 import statsRoutes from "./stats.routes";
 import servicesRoutes from "./services.routes";
+import healthRoutes from "./health.routes";
+import logsRoutes from "./logs.routes";
 
 const router = Router();
 
@@ -20,9 +22,11 @@ router.use("/gallery", galleryRoutes);
 router.use("/inquiries", inquiriesRoutes);
 router.use("/cms", cmsRoutes);
 router.use("/brands", brandsRoutes);
-router.use("/testimonials", testimonialsRoutes);
-router.use("/upload", uploadRoutes);
+router.use("/testimonials", reviewsRoutes); // Map reviews to /testimonials endpoint
+router.use("/media", mediaRoutes); // Central Media Library
 router.use("/dashboard/stats", statsRoutes);
 router.use("/services", servicesRoutes);
+router.use("/logs", logsRoutes); // Audit logs
+router.use("/", healthRoutes); // Mount health, ready, version
 
 export default router;

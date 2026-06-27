@@ -13,7 +13,7 @@ export async function list(req: Request, res: Response): Promise<void> {
 
     const mappedList = list.map((item: any) => ({
       ...item,
-      imageUrls: item.images.map((img: any) => img.url),
+      imageUrls: item.images ? item.images.map((img: any) => img.url) : [],
       service: item.service?.name || "",
     }));
 
@@ -40,7 +40,21 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
       return;
     }
 
-    const { title, description, location, serviceId, imageUrls, beforeImageUrl, afterImageUrl, featured, order } = parseResult.data;
+    const {
+      title,
+      slug,
+      description,
+      location,
+      clientName,
+      duration,
+      serviceId,
+      imageUrls,
+      beforeImageUrl,
+      afterImageUrl,
+      featured,
+      order,
+      completionDate,
+    } = parseResult.data;
 
     // Check service exists
     const service = await prisma.service.findUnique({
@@ -53,17 +67,22 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
     }
 
     const nextOrder = order !== undefined ? order : (await prisma.gallery.count()) + 1;
+    const computedSlug = slug || title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
     const item = await prisma.gallery.create({
       data: {
         title,
+        slug: computedSlug,
         description,
         location,
+        clientName: clientName || null,
+        duration: duration || null,
         serviceId,
         beforeImageUrl: beforeImageUrl || null,
         afterImageUrl: afterImageUrl || null,
         featured,
         order: nextOrder,
+        completionDate: completionDate ? new Date(completionDate) : new Date(),
         images: {
           create: imageUrls.map((url) => ({ url })),
         },
@@ -82,7 +101,7 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedItem = {
       ...item,
-      imageUrls: item.images.map((img: any) => img.url),
+      imageUrls: item.images ? item.images.map((img: any) => img.url) : [],
       service: item.service?.name || "",
     };
 

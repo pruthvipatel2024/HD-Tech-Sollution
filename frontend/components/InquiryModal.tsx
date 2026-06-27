@@ -9,9 +9,10 @@ interface InquiryModalProps {
   isOpen: boolean;
   onClose: () => void;
   defaultService?: string;
+  initialMessage?: string;
 }
 
-export default function InquiryModal({ isOpen, onClose, defaultService = "Computer" }: InquiryModalProps) {
+export default function InquiryModal({ isOpen, onClose, defaultService = "Computer", initialMessage = "" }: InquiryModalProps) {
   const [formData, setFormData] = useState({
     customerName: "",
     mobileNumber: "",
@@ -28,6 +29,15 @@ export default function InquiryModal({ isOpen, onClose, defaultService = "Comput
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Prepopulate message when initialMessage changes or when modal is opened
+  useEffect(() => {
+    if (isOpen && initialMessage) {
+      setFormData((prev) => ({ ...prev, message: initialMessage }));
+    } else if (isOpen) {
+      setFormData((prev) => ({ ...prev, message: "" }));
+    }
+  }, [isOpen, initialMessage]);
 
   useEffect(() => {
     if (isOpen) {
