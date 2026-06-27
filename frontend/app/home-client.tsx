@@ -198,15 +198,15 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
               <h3 className="text-lg font-bold font-display text-white">Our Operational Track Record</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-white font-display">12+</span>
+                  <span className="block text-3xl font-extrabold text-white font-display">2+</span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">Years Experience</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">1.5K+</span>
+                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">350+</span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">Systems Assembled</span>
                 </div>
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-white font-display">500+</span>
+                  <span className="block text-3xl font-extrabold text-white font-display">45+</span>
                   <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">CCTV Nodes Active</span>
                 </div>
                 <div className="space-y-1">
@@ -513,27 +513,29 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
               </div>
             </div>
 
-            {/* Custom Interactive Styled Map Fallback */}
+            {/* Custom Interactive Styled Map */}
             <div className="w-full relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-[#191c1e] shadow-xl group">
-              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center z-10 bg-black/40 backdrop-blur-[2px]">
-                <MapPin className="h-12 w-12 text-[#00e3fd] mb-3 animate-bounce" />
-                <h4 className="text-white font-bold font-display text-base mb-1">HD Tech Solutions HQ</h4>
-                <p className="text-white/60 text-xs max-w-xs font-sans leading-relaxed">
-                  Tech Zone, Metro City. Interactive Map services loading...
-                </p>
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001")}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                width="100%"
+                height="100%"
+                style={{ border: 0, filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}
+                allowFullScreen={false}
+                loading="lazy"
+                title="Google Maps"
+                className="absolute inset-0 w-full h-full"
+              ></iframe>
+              <div className="absolute top-4 right-4 z-10">
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(cms.contact_address)}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 text-white font-semibold text-xs transition-all flex items-center gap-2"
+                  className="px-3 py-1.5 rounded-lg bg-[#0b0f10]/80 backdrop-blur-sm border border-white/10 hover:border-[#00e3fd]/30 hover:bg-[#00e3fd]/10 text-white font-semibold text-[10px] tracking-wide transition-all flex items-center gap-1.5"
                 >
-                  Open in Google Maps
-                  <ExternalLink className="h-3 w-3" />
+                  <span>Open Maps</span>
+                  <ExternalLink className="h-3 w-3 text-[#00e3fd]" />
                 </a>
               </div>
-              
-              {/* Graphic background representing grids */}
-              <div className="absolute inset-0 opacity-20 pointer-events-none bg-[radial-gradient(#b1c7f2_1px,transparent_1px)] [background-size:16px_16px]" />
             </div>
 
           </div>
