@@ -114,6 +114,8 @@ export async function login(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
+      token: accessToken,
+      refreshToken: refreshToken,
       data: {
         username: admin.username,
         role: admin.role.name,
@@ -209,6 +211,7 @@ export async function refresh(req: Request, res: Response): Promise<void> {
     res.status(200).json({
       success: true,
       message: "Session token refreshed",
+      token: newAccessToken,
       data: {
         username: admin.username,
         role: admin.role.name,

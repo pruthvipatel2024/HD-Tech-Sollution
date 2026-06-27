@@ -33,6 +33,14 @@ export async function apiRequest(
       });
 
       if (refreshRes.ok) {
+        try {
+          const refreshData = await refreshRes.json();
+          if (refreshData.token && typeof document !== "undefined") {
+            document.cookie = `token=${refreshData.token}; path=/; max-age=${15 * 60}; SameSite=Lax; Secure`;
+          }
+        } catch (err) {
+          console.error("[Session Client] Failed to parse refreshed token payload:", err);
+        }
         // Retry the original query
         response = await fetch(url, options);
       } else {
