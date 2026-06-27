@@ -9,6 +9,10 @@ import { setupSwagger } from "./config/swagger";
 
 const app = express();
 
+// Trust reverse proxy (e.g. Render, Vercel load balancers)
+// This is critical for express-rate-limit to read X-Forwarded-For header correctly
+app.set("trust proxy", 1);
+
 // Security Headers
 app.use(
   helmet({
@@ -20,7 +24,14 @@ app.use(
         styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         fontSrc: ["'self'", "https://fonts.gstatic.com"],
         imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://images.unsplash.com", "https://upload.wikimedia.org"],
-        connectSrc: ["'self'", "http://localhost:3000", "http://localhost:3001", "https://hdtechsolutions.vercel.app"],
+        connectSrc: [
+          "'self'",
+          "http://localhost:3000",
+          "http://localhost:3001",
+          "https://hd-tech-sollution.vercel.app",
+          "https://hdtechsolutions.vercel.app",
+          "https://hd-tech-solutions.vercel.app",
+        ],
       },
     },
   })
@@ -28,11 +39,16 @@ app.use(
 
 // CORS Configuration enabling credentials for HTTP-only cookies
 const allowedOrigins = [
-  process.env.CLIENT_URL || "https://hdtechsolutions.vercel.app",
+  "https://hd-tech-sollution.vercel.app",
+  "https://hdtechsolutions.vercel.app",
+  "https://hd-tech-solutions.vercel.app",
   "http://localhost:3000",
   "http://localhost:3001",
   "http://localhost:5173",
 ];
+if (process.env.CLIENT_URL) {
+  allowedOrigins.push(process.env.CLIENT_URL);
+}
 
 app.use(
   cors({
