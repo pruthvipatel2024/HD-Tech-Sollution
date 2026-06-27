@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useRef } from "react";
+import { motion, useInView } from "framer-motion";
 import {
   Monitor,
   Laptop,
@@ -34,6 +34,7 @@ import Footer from "@/components/Footer";
 import TechBackground from "@/components/TechBackground";
 import InquiryModal from "@/components/InquiryModal";
 import Link from "next/link";
+import Image from "next/image";
 
 interface HomeClientProps {
   cms: any;
@@ -82,6 +83,44 @@ const getServiceIcon = (iconName: string) => {
   }
 };
 
+function AnimatedCounter({ value, suffix = "", duration = 1.5 }: { value: string; suffix?: string; duration?: number }) {
+  const [count, setCount] = useState(0);
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-50px" });
+
+  const numericValue = parseInt(value.replace(/[^0-9]/g, ""), 10);
+  const isNumeric = !isNaN(numericValue);
+
+  useEffect(() => {
+    if (isInView && isNumeric) {
+      let start = 0;
+      const end = numericValue;
+      if (start === end) return;
+
+      const totalMiliseconds = duration * 1000;
+      const incrementTime = Math.max(Math.floor(totalMiliseconds / end), 20);
+      
+      const timer = setInterval(() => {
+        start += Math.ceil(end / (totalMiliseconds / incrementTime));
+        if (start >= end) {
+          clearInterval(timer);
+          setCount(end);
+        } else {
+          setCount(start);
+        }
+      }, incrementTime);
+
+      return () => clearInterval(timer);
+    }
+  }, [isInView, numericValue, isNumeric, duration]);
+
+  if (!isNumeric) {
+    return <span ref={ref}>{value}</span>;
+  }
+
+  return <span ref={ref}>{count}{suffix || value.replace(/[0-9]/g, "")}</span>;
+}
+
 export default function HomeClient({ cms, galleryItems, testimonials, brands, services = [] }: HomeClientProps) {
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [selectedService, setSelectedService] = useState("Computer");
@@ -90,6 +129,18 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
     setSelectedService(service);
     setIsInquiryOpen(true);
   };
+
+  const activeServices = services && services.length > 0 ? services : [
+    { id: "1", name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail computer systems.", category: "Sales" },
+    { id: "2", name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops from leading brands.", category: "Sales" },
+    { id: "3", name: "Computer Repair", icon: "Wrench", description: "Hardware diagnostics, motherboard repair, component replacement, and system optimization.", category: "Repair" },
+    { id: "4", name: "Laptop Repair", icon: "Cpu", description: "Screen replacement, keyboard fix, battery swapping, and advanced chip-level diagnostics.", category: "Repair" },
+    { id: "5", name: "Networking Solutions", icon: "Wifi", description: "Structured LAN/WAN cabling, enterprise-grade routers, high-throughput switch networks, and WiFi audits.", category: "Networking" },
+    { id: "6", name: "CCTV Installation", icon: "Video", description: "High-fidelity IP security camera deployments, NVR storage setups, and remote mobile viewing links.", category: "CCTV" },
+    { id: "7", name: "Printer Services", icon: "Printer", description: "Printer setup, toner refilling, scanner configuration, and routine printing hardware servicing.", category: "Services" },
+    { id: "8", name: "Accessories", icon: "Keyboard", description: "Mechanical keypads, high-precision mice, SSD expansions, cables, and premium tech accessories.", category: "Sales" },
+    { id: "9", name: "Annual Maintenance Contracts (AMC)", icon: "ShieldCheck", description: "Comprehensive round-the-clock IT support, backup monitoring, and systems AMC for offices.", category: "AMC" }
+  ];
 
   return (
     <>
@@ -119,11 +170,11 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
             </div>
 
             <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold text-white font-display leading-[1.1] tracking-tight">
-              {cms.hero_title}
+              {cms.hero_title || "Smart Technology. Better Solutions."}
             </h1>
 
             <p className="text-white/60 text-sm sm:text-base md:text-lg max-w-2xl mx-auto font-sans leading-relaxed">
-              {cms.hero_subtitle}
+              {cms.hero_subtitle || "One Stop Solution For All Your IT Needs."}
             </p>
 
             <div className="pt-6 flex flex-wrap justify-center items-center gap-4">
@@ -138,6 +189,12 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
                 className="px-8 py-3.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all duration-200"
               >
                 Explore Products
+              </Link>
+              <Link
+                href="#contact"
+                className="px-8 py-3.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all duration-200"
+              >
+                Contact Us
               </Link>
             </div>
           </motion.div>
@@ -160,10 +217,10 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
                 Core Identity
               </div>
               <h2 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tight">
-                {cms.about_title}
+                {cms.about_title || "Expert Tech Infrastructure & Services"}
               </h2>
               <p className="text-white/60 text-sm font-sans leading-relaxed">
-                {cms.about_text}
+                {cms.about_text || "At HD Tech Solutions, we specialize in high-quality computer sales, laptop sales, networking solutions, CCTV installation, computer repair, laptop repair, accessories, AMC services, and complete office IT setups. With over 2 years of active industry experience and a firm customer-first approach, we aim to provide reliable, top-tier technology support and maintenance services tailored to the needs of both local homes and businesses."}
               </p>
               
               {/* Highlight Pillars */}
@@ -198,20 +255,36 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
               <h3 className="text-lg font-bold font-display text-white">Our Operational Track Record</h3>
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-white font-display">2+</span>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">Years Experience</span>
+                  <span className="block text-3xl font-extrabold text-white font-display">
+                    <AnimatedCounter value={cms.stat_experience_value || "2+"} />
+                  </span>
+                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
+                    {cms.stat_experience_label || "Years of Experience"}
+                  </span>
                 </div>
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">350+</span>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">Systems Assembled</span>
+                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">
+                    <AnimatedCounter value={cms.stat_assembled_value || "350+"} />
+                  </span>
+                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
+                    {cms.stat_assembled_label || "Computer Systems Assembled"}
+                  </span>
                 </div>
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-white font-display">45+</span>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">CCTV Nodes Active</span>
+                  <span className="block text-3xl font-extrabold text-white font-display">
+                    <AnimatedCounter value={cms.stat_cctv_value || "40+"} />
+                  </span>
+                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
+                    {cms.stat_cctv_label || "Active CCTV Nodes Installed"}
+                  </span>
                 </div>
                 <div className="space-y-1">
-                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">99.8%</span>
-                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">SLA Compliance</span>
+                  <span className="block text-3xl font-extrabold text-[#00e3fd] font-display">
+                    <AnimatedCounter value={cms.stat_partner_value || "Trusted"} />
+                  </span>
+                  <span className="block text-[10px] uppercase tracking-wider text-white/40 font-geist font-bold">
+                    {cms.stat_partner_label || "IT Partner for Homes & Businesses"}
+                  </span>
                 </div>
               </div>
             </motion.div>
@@ -232,7 +305,7 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((srv, index) => {
+            {activeServices.map((srv, index) => {
               const Icon = getServiceIcon(srv.icon);
               const features = srv.category ? [srv.category, "Custom Configuration", "Full Support"] : ["Custom Configuration", "Full Support"];
               return (
@@ -281,6 +354,47 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
         </div>
       </section>
 
+      {/* Why Choose Us Section */}
+      <section className="relative py-24 px-6 md:px-8 border-t border-white/5 bg-[#101415]/90">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[500px] w-[500px] rounded-full bg-[#00e3fd]/3 blur-[120px] pointer-events-none" />
+
+        <div className="mx-auto max-w-7xl relative">
+          <div className="text-center space-y-4 max-w-xl mx-auto mb-16">
+            <div className="text-[#00e3fd] font-geist text-[10px] uppercase font-bold tracking-widest">Our Value Proposition</div>
+            <h2 className="text-3xl md:text-5xl font-bold font-display text-white tracking-tight">Why Choose Us</h2>
+            <p className="text-white/50 text-xs font-sans">
+              We combine enterprise-level engineering standards with personalized local support to deliver unmatched technological reliability.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { title: "Genuine Products", desc: "100% authentic hardware, sourced directly from authorized distributors with full manufacturer warranties." },
+              { title: "Certified Technicians", desc: "Certified and highly trained engineering staff to ensure precise diagnosis and installation." },
+              { title: "Affordable Pricing", desc: "Transparent, upfront project estimates with competitive rates and zero hidden charges." },
+              { title: "Fast Support", desc: "Rapid-response remote assistance and on-site repair visits to minimize your business downtime." },
+              { title: "Professional Installation", desc: "Impeccably neat cable management, optimized setups, and structured rack cabling." },
+              { title: "Warranty Assistance", desc: "We fully manage the warranty support loop for any hardware purchased through us, stress-free." },
+              { title: "After-Sales Support", desc: "Continuous firmware updates, troubleshooting, and dedicated maintenance follow-ups." },
+              { title: "Customer Satisfaction", desc: "A client-first ethos, backed by outstanding long-term reviews from local homes and offices." }
+            ].map((item, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4, delay: idx * 0.05 }}
+                className="glass-card rounded-xl border border-white/5 p-6 hover:border-[#00e3fd]/20 transition-all duration-300 shadow-md flex flex-col gap-3 group bg-black/20"
+              >
+                <div className="h-2 w-12 rounded-full bg-gradient-to-r from-[#00e3fd] to-[#2380ff] group-hover:w-20 transition-all duration-300" />
+                <h3 className="text-sm font-bold font-display text-white mt-1 group-hover:text-[#00e3fd] transition-colors">{item.title}</h3>
+                <p className="text-white/50 text-[11px] font-sans leading-relaxed">{item.desc}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Gallery Highlight Section */}
       <section className="relative py-24 px-6 md:px-8 border-t border-white/5 bg-[#101415]/95">
         <div className="mx-auto max-w-7xl">
@@ -312,10 +426,12 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
                 className="group relative rounded-xl overflow-hidden border border-white/5 bg-[#191c1e] shadow-xl hover:border-[#00e3fd]/20 transition-all duration-300"
               >
                 <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
-                  <img
+                  <Image
                     src={item.imageUrls[0]}
                     alt={item.title}
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    fill
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#101415] via-[#101415]/20 to-transparent opacity-80" />
                   
@@ -412,11 +528,15 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
                 </div>
                 <div className="flex items-center gap-4 pt-6 border-t border-white/5 mt-6">
                   {test.avatarUrl ? (
-                    <img
-                      src={test.avatarUrl}
-                      alt={test.customerName}
-                      className="h-10 w-10 rounded-full object-cover border border-white/10"
-                    />
+                    <div className="relative h-10 w-10 rounded-full overflow-hidden border border-white/10 shrink-0">
+                      <Image
+                        src={test.avatarUrl}
+                        alt={test.customerName}
+                        fill
+                        sizes="40px"
+                        className="object-cover"
+                      />
+                    </div>
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white/5 border border-white/10 font-bold text-xs text-white">
                       {test.customerName.charAt(0)}
@@ -455,7 +575,7 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
                   </div>
                   <div>
                     <h4 className="text-white font-bold font-display uppercase tracking-widest text-[9px] text-white/40 mb-1">Office Location</h4>
-                    <p className="text-white/70">{cms.contact_address}</p>
+                    <p className="text-white/70">{cms.contact_address || "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001"}</p>
                   </div>
                 </div>
 
@@ -516,7 +636,7 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
             {/* Custom Interactive Styled Map */}
             <div className="w-full relative aspect-[4/3] rounded-xl overflow-hidden border border-white/10 bg-[#191c1e] shadow-xl group">
               <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001")}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001")}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0, filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}
@@ -527,12 +647,12 @@ export default function HomeClient({ cms, galleryItems, testimonials, brands, se
               ></iframe>
               <div className="absolute top-4 right-4 z-10">
                 <a
-                  href={`https://maps.google.com/?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001")}`}
+                  href={`https://maps.google.com/?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001")}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3 py-1.5 rounded-lg bg-[#0b0f10]/80 backdrop-blur-sm border border-white/10 hover:border-[#00e3fd]/30 hover:bg-[#00e3fd]/10 text-white font-semibold text-[10px] tracking-wide transition-all flex items-center gap-1.5"
                 >
-                  <span>Open Maps</span>
+                  <span>Get Directions</span>
                   <ExternalLink className="h-3 w-3 text-[#00e3fd]" />
                 </a>
               </div>

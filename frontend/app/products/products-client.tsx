@@ -7,6 +7,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import InquiryModal from "@/components/InquiryModal";
 import Link from "next/link";
+import Image from "next/image";
 
 interface ProductsClientProps {
   categories: any[];
@@ -177,10 +178,12 @@ export default function ProductsClient({ categories, initialProducts }: Products
                       {/* Product Image */}
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
                         {prod.imageUrls && prod.imageUrls[0] ? (
-                          <img
+                          <Image
                             src={prod.imageUrls[0]}
                             alt={prod.name}
-                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            fill
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
                           />
                         ) : (
                           <div className="flex h-full w-full items-center justify-center text-white/20">

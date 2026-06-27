@@ -6,6 +6,7 @@ import { X, MapPin, Calendar, Camera, ArrowLeftRight, ArrowLeft } from "lucide-r
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Link from "next/link";
+import Image from "next/image";
 
 interface GalleryClientProps {
   initialItems: any[];
@@ -137,11 +138,12 @@ export default function GalleryClient({ initialItems }: GalleryClientProps) {
                     <div>
                       {/* Image Frame */}
                       <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/20">
-                        <img
+                        <Image
                           src={item.imageUrls[0]}
                           alt={item.title}
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          loading="lazy"
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover transition-transform duration-500 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#101415]/80 via-[#101415]/10 to-transparent opacity-85" />
                         
@@ -210,10 +212,12 @@ export default function GalleryClient({ initialItems }: GalleryClientProps) {
             >
               {/* Image Column */}
               <div className="relative flex-1 bg-black flex items-center justify-center min-h-[300px] md:min-h-0">
-                <img
+                <Image
                   src={getActiveImage(activeLightboxItem)}
                   alt={activeLightboxItem.title}
-                  className="max-h-[50vh] md:max-h-full max-w-full object-contain"
+                  fill
+                  sizes="(max-width: 1200px) 100vw, 80vw"
+                  className="object-contain"
                 />
 
                 {/* Before / After toggle switches */}

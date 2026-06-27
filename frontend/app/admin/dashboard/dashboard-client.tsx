@@ -22,14 +22,17 @@ import {
   Edit2,
   FileText,
   AlertCircle,
-  Loader2
+  Loader2,
+  Star,
+  Cpu,
+  Layers
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { logout } from "@/services/auth";
-import { getInquiries, updateInquiryStatus, deleteInquiry } from "@/services/inquiries";
+import { getInquiries, updateInquiryStatus, deleteInquiry, addInquiryNote } from "@/services/inquiries";
 import { getProducts, getCategories, createProduct, updateProduct, deleteProduct } from "@/services/products";
 import { getGallery, createGalleryItem, deleteGalleryItem } from "@/services/gallery";
-import { getCmsSettings, updateCmsSetting, getServices } from "@/services/cms";
+import { getCmsSettings, updateCmsSetting, getServices, getBrands, getTestimonials, createBrand, deleteBrand, createTestimonial, deleteTestimonial, createService, deleteService } from "@/services/cms";
 import { uploadFile } from "@/services/upload";
 
 interface DashboardClientProps {
@@ -47,12 +50,15 @@ export default function DashboardClient({
   initialInquiries = [],
   initialCMS = {},
 }: DashboardClientProps) {
-  const [activeTab, setActiveTab] = useState<"inquiries" | "products" | "gallery" | "cms">("inquiries");
+  const [activeTab, setActiveTab] = useState<"inquiries" | "products" | "gallery" | "cms" | "brands" | "testimonials" | "services">("inquiries");
   const [inquiries, setInquiries] = useState<any[]>(initialInquiries);
   const [products, setProducts] = useState<any[]>(initialProducts);
   const [gallery, setGallery] = useState<any[]>(initialGallery);
   const [cms, setCms] = useState<any>(initialCMS);
   const [categoriesState, setCategoriesState] = useState<any[]>(categories);
+  const [servicesState, setServicesState] = useState<any[]>([]);
+  const [brandsState, setBrandsState] = useState<any[]>([]);
+  const [testimonialsState, setTestimonialsState] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Router for logout redirect
@@ -62,18 +68,24 @@ export default function DashboardClient({
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [prodData, catData, galData, inqData, cmsData] = await Promise.all([
+        const [prodData, catData, galData, inqData, cmsData, srvData, brandData, testData] = await Promise.all([
           getProducts(),
           getCategories(),
           getGallery(),
           getInquiries(),
           getCmsSettings(),
+          getServices(),
+          getBrands(),
+          getTestimonials(),
         ]);
         setProducts(prodData);
         setCategoriesState(catData);
         setGallery(galData);
         setInquiries(inqData);
         setCms(cmsData);
+        setServicesState(srvData);
+        setBrandsState(brandData);
+        setTestimonialsState(testData);
         
         // Populate default category in product form if loaded
         if (catData.length > 0) {
@@ -123,6 +135,124 @@ export default function DashboardClient({
 
   // File uploading states
   const [isUploading, setIsUploading] = useState(false);
+
+  // Service CRUD states
+  const [isServiceFormOpen, setIsServiceFormOpen] = useState(false);
+  const [serviceForm, setServiceForm] = useState({
+    name: "",
+    icon: "Monitor",
+    description: "",
+    category: "Sales",
+    isCore: true,
+  });
+
+  // Brand CRUD states
+  const [isBrandFormOpen, setIsBrandFormOpen] = useState(false);
+  const [brandForm, setBrandForm] = useState({
+    name: "",
+    logoUrl: "",
+  });
+
+  // Testimonial CRUD states
+  const [isTestimonialFormOpen, setIsTestimonialFormOpen] = useState(false);
+  const [testimonialForm, setTestimonialForm] = useState({
+    customerName: "",
+    role: "",
+    content: "",
+    rating: 5,
+    avatarUrl: "",
+  });
+
+  // Inquiry Notes states
+  const [newNoteText, setNewNoteText] = useState("");
+  const [isSavingNote, setIsSavingNote] = useState(false);
+
+  const handleServiceSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const newSrv = await createService(serviceForm);
+      setServicesState((prev) => [...prev, newSrv]);
+      setIsServiceFormOpen(false);
+      setServiceForm({ name: "", icon: "Monitor", description: "", category: "Sales", isCore: true });
+    } catch (err) {
+      console.error("Failed to create service:", err);
+    }
+  };
+
+  const handleDeleteService = async (id: string) => {
+    if (confirm("Are you sure you want to delete this service?")) {
+      try {
+         await deleteService(id);
+         setServicesState((prev) => prev.filter((s) => s.id !== id));
+      } catch (err) {
+         console.error("Failed to delete service:", err);
+      }
+    }
+  };
+
+  const handleBrandSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const newBrand = await createBrand(brandForm.name, brandForm.logoUrl);
+      setBrandsState((prev) => [...prev, newBrand]);
+      setIsBrandFormOpen(false);
+      setBrandForm({ name: "", logoUrl: "" });
+    } catch (err) {
+      console.error("Failed to create brand:", err);
+    }
+  };
+
+  const handleDeleteBrand = async (id: string) => {
+    if (confirm("Are you sure you want to delete this brand?")) {
+      try {
+        await deleteBrand(id);
+        setBrandsState((prev) => prev.filter((b) => b.id !== id));
+      } catch (err) {
+        console.error("Failed to delete brand:", err);
+      }
+    }
+  };
+
+  const handleTestimonialSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const newTest = await createTestimonial(testimonialForm);
+      setTestimonialsState((prev) => [...prev, newTest]);
+      setIsTestimonialFormOpen(false);
+      setTestimonialForm({ customerName: "", role: "", content: "", rating: 5, avatarUrl: "" });
+    } catch (err) {
+      console.error("Failed to create testimonial:", err);
+    }
+  };
+
+  const handleDeleteTestimonial = async (id: string) => {
+    if (confirm("Are you sure you want to delete this testimonial?")) {
+      try {
+        await deleteTestimonial(id);
+        setTestimonialsState((prev) => prev.filter((t) => t.id !== id));
+      } catch (err) {
+        console.error("Failed to delete testimonial:", err);
+      }
+    }
+  };
+
+  const handleAddNote = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newNoteText.trim() || !selectedInquiry) return;
+    setIsSavingNote(true);
+    try {
+      const note = await addInquiryNote(selectedInquiry.id, newNoteText);
+      const updatedNotes = selectedInquiry.notes ? [note, ...selectedInquiry.notes] : [note];
+      const updatedInquiry = { ...selectedInquiry, notes: updatedNotes };
+      setSelectedInquiry(updatedInquiry);
+      setInquiries(inquiries.map((inq) => (inq.id === selectedInquiry.id ? updatedInquiry : inq)));
+      setNewNoteText("");
+    } catch (err) {
+      console.error("Failed to add note:", err);
+    } finally {
+      setIsSavingNote(false);
+    }
+  };
 
   // Statistics
   const totalProducts = products.length;
@@ -444,6 +574,42 @@ export default function DashboardClient({
               <Settings className="h-4.5 w-4.5" />
               CMS Configuration
             </button>
+
+            <button
+              onClick={() => setActiveTab("services")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                activeTab === "services"
+                  ? "bg-[#00e3fd]/10 border border-[#00e3fd]/20 text-[#00e3fd]"
+                  : "hover:bg-white/5 hover:text-white border border-transparent"
+              }`}
+            >
+              <Layers className="h-4.5 w-4.5" />
+              Services Manager
+            </button>
+
+            <button
+              onClick={() => setActiveTab("brands")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                activeTab === "brands"
+                  ? "bg-[#00e3fd]/10 border border-[#00e3fd]/20 text-[#00e3fd]"
+                  : "hover:bg-white/5 hover:text-white border border-transparent"
+              }`}
+            >
+              <Cpu className="h-4.5 w-4.5" />
+              Brands Manager
+            </button>
+
+            <button
+              onClick={() => setActiveTab("testimonials")}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
+                activeTab === "testimonials"
+                  ? "bg-[#00e3fd]/10 border border-[#00e3fd]/20 text-[#00e3fd]"
+                  : "hover:bg-white/5 hover:text-white border border-transparent"
+              }`}
+            >
+              <Star className="h-4.5 w-4.5" />
+              Testimonials
+            </button>
           </nav>
         </div>
 
@@ -708,6 +874,45 @@ export default function DashboardClient({
                           </a>
                         </div>
                       )}
+
+                      {/* Notes Timeline */}
+                      <div className="space-y-3 pt-4 border-t border-white/5">
+                        <div className="text-[10px] font-bold font-geist text-white/40 uppercase tracking-wider">Inquiry Notes</div>
+                        
+                        <form onSubmit={handleAddNote} className="flex gap-2">
+                          <input
+                            type="text"
+                            placeholder="Add a diagnostic note..."
+                            value={newNoteText}
+                            onChange={(e) => setNewNoteText(e.target.value)}
+                            className="flex-1 rounded-lg glass-input px-3 py-1.5 text-xs bg-black/20 border border-white/10 text-white"
+                          />
+                          <button
+                            type="submit"
+                            disabled={isSavingNote || !newNoteText.trim()}
+                            className="px-3 py-1.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold text-xs disabled:opacity-40 transition-all flex items-center justify-center shrink-0"
+                          >
+                            {isSavingNote ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Add"}
+                          </button>
+                        </form>
+
+                        {/* Notes list */}
+                        <div className="space-y-2 max-h-[150px] overflow-y-auto pr-1">
+                          {selectedInquiry.notes && selectedInquiry.notes.length > 0 ? (
+                            selectedInquiry.notes.map((note: any) => (
+                              <div key={note.id} className="p-2 rounded-lg bg-black/15 border border-white/5 space-y-1">
+                                <div className="flex justify-between items-center text-[9px] text-white/40">
+                                  <span className="font-bold text-[#00e3fd]">{note.admin?.username || "Admin"}</span>
+                                  <span>{new Date(note.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <p className="text-[10px] text-white/70 leading-relaxed font-sans">{note.text}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-[10px] text-white/30 italic text-center py-2">No notes appended yet.</div>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Status changes controls */}
                       <div className="space-y-2 pt-4 border-t border-white/5">
@@ -1493,7 +1698,7 @@ export default function DashboardClient({
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
+                     <div className="space-y-1.5">
                       <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Support Email Address</label>
                       <div className="flex gap-2">
                         <input
@@ -1513,6 +1718,526 @@ export default function DashboardClient({
                   </div>
                 </div>
 
+                <hr className="border-white/5" />
+
+                {/* Company statistics CMS */}
+                <div className="space-y-4">
+                  <h4 className="text-white font-bold font-display text-xs uppercase tracking-wider text-[#00e3fd]">4. Company Track Record & Statistics</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Years of Experience (Value / Label)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.stat_experience_value || ""}
+                          placeholder="e.g. 2+"
+                          onChange={(e) => handleCMSChange("stat_experience_value", e.target.value)}
+                          className="w-20 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={cms.stat_experience_label || ""}
+                          placeholder="e.g. Years of Experience"
+                          onChange={(e) => handleCMSChange("stat_experience_label", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleCMSSave("stat_experience_value");
+                            await handleCMSSave("stat_experience_label");
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Systems Assembled (Value / Label)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.stat_assembled_value || ""}
+                          placeholder="e.g. 350+"
+                          onChange={(e) => handleCMSChange("stat_assembled_value", e.target.value)}
+                          className="w-20 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={cms.stat_assembled_label || ""}
+                          placeholder="e.g. Computer Systems Assembled"
+                          onChange={(e) => handleCMSChange("stat_assembled_label", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleCMSSave("stat_assembled_value");
+                            await handleCMSSave("stat_assembled_label");
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">CCTV Nodes (Value / Label)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.stat_cctv_value || ""}
+                          placeholder="e.g. 40+"
+                          onChange={(e) => handleCMSChange("stat_cctv_value", e.target.value)}
+                          className="w-20 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={cms.stat_cctv_label || ""}
+                          placeholder="e.g. Active CCTV Nodes Installed"
+                          onChange={(e) => handleCMSChange("stat_cctv_label", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleCMSSave("stat_cctv_value");
+                            await handleCMSSave("stat_cctv_label");
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Trusted Tagline (Value / Label)</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.stat_partner_value || ""}
+                          placeholder="e.g. Trusted"
+                          onChange={(e) => handleCMSChange("stat_partner_value", e.target.value)}
+                          className="w-20 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <input
+                          type="text"
+                          value={cms.stat_partner_label || ""}
+                          placeholder="e.g. IT Partner for Homes & Businesses"
+                          onChange={(e) => handleCMSChange("stat_partner_label", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={async () => {
+                            await handleCMSSave("stat_partner_value");
+                            await handleCMSSave("stat_partner_label");
+                          }}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr className="border-white/5" />
+
+                {/* Additional business config */}
+                <div className="space-y-4">
+                  <h4 className="text-white font-bold font-display text-xs uppercase tracking-wider text-[#00e3fd]">5. Company Info & Maps URL</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Company Name</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.company_name || ""}
+                          onChange={(e) => handleCMSChange("company_name", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={() => handleCMSSave("company_name")}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="block text-white/50 font-geist text-[9px] uppercase tracking-wider font-bold">Google Maps URL query or coordinates</label>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={cms.google_maps_url || ""}
+                          onChange={(e) => handleCMSChange("google_maps_url", e.target.value)}
+                          className="flex-1 rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                        <button
+                          onClick={() => handleCMSSave("google_maps_url")}
+                          className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 font-bold transition-all text-[11px]"
+                        >
+                          Save
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          )}
+
+          {activeTab === "services" && (
+            /* --- SERVICES MANAGER PANEL --- */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white/50">{servicesState.length} Services offered</span>
+                <button
+                  onClick={() => setIsServiceFormOpen(true)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold text-xs shadow transition-all"
+                >
+                  <Plus className="h-4.5 w-4.5" />
+                  Add Service
+                </button>
+              </div>
+
+              {isServiceFormOpen && (
+                <div className="glass-card rounded-xl border border-[#00e3fd]/20 bg-[#191c1e] p-6 shadow-xl space-y-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                    <h3 className="text-base font-bold font-display text-white">Create New Service</h3>
+                    <button onClick={() => setIsServiceFormOpen(false)} className="p-1 rounded-lg text-white/40 hover:bg-white/5">
+                      <X className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleServiceSubmit} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Service Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={serviceForm.name}
+                          onChange={(e) => setServiceForm((s) => ({ ...s, name: e.target.value }))}
+                          placeholder="e.g. Printer Services"
+                          className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Lucide Icon *</label>
+                          <select
+                            value={serviceForm.icon}
+                            onChange={(e) => setServiceForm((s) => ({ ...s, icon: e.target.value }))}
+                            className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                          >
+                            <option value="Monitor">Monitor</option>
+                            <option value="Laptop">Laptop</option>
+                            <option value="Cpu">Cpu</option>
+                            <option value="Wifi">Wifi</option>
+                            <option value="Video">Video</option>
+                            <option value="Printer">Printer</option>
+                            <option value="Keyboard">Keyboard</option>
+                            <option value="Wrench">Wrench</option>
+                            <option value="ShieldCheck">ShieldCheck</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Category *</label>
+                          <input
+                            type="text"
+                            required
+                            value={serviceForm.category}
+                            onChange={(e) => setServiceForm((s) => ({ ...s, category: e.target.value }))}
+                            placeholder="e.g. Repair, Sales"
+                            className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Description *</label>
+                      <textarea
+                        required
+                        rows={2}
+                        value={serviceForm.description}
+                        onChange={(e) => setServiceForm((s) => ({ ...s, description: e.target.value }))}
+                        placeholder="Short summary of the service offering..."
+                        className="w-full rounded-lg glass-input px-3 py-2 text-xs resize-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="flex items-center gap-2 cursor-pointer mt-2">
+                        <input
+                          type="checkbox"
+                          checked={serviceForm.isCore}
+                          onChange={(e) => setServiceForm((s) => ({ ...s, isCore: e.target.checked }))}
+                          className="rounded border-white/10 bg-white/5 text-[#00e3fd] h-4.5 w-4.5 cursor-pointer"
+                        />
+                        <span className="font-semibold text-white/70">Pin to homepage core services</span>
+                      </label>
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/5">
+                      <button type="button" onClick={() => setIsServiceFormOpen(false)} className="px-4 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 font-semibold text-white transition-colors">Cancel</button>
+                      <button type="submit" className="px-6 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold shadow">Create Service</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="glass-card rounded-xl border border-white/5 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-white/10 bg-black/25 text-white/50 font-geist uppercase tracking-wider text-[9px]">
+                        <th className="p-4 font-bold">Service Name</th>
+                        <th className="p-4 font-bold">Category</th>
+                        <th className="p-4 font-bold">Icon Name</th>
+                        <th className="p-4 font-bold">Core?</th>
+                        <th className="p-4 font-bold text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-sans">
+                      {servicesState.map((srv) => (
+                        <tr key={srv.id} className="hover:bg-white/2 transition-colors">
+                          <td className="p-4">
+                            <div className="font-bold text-white text-sm">{srv.name}</div>
+                            <div className="text-[10px] text-white/40 line-clamp-1 max-w-sm mt-0.5">{srv.description}</div>
+                          </td>
+                          <td className="p-4">
+                            <span className="rounded-full bg-white/5 border border-white/10 px-2.5 py-0.5 text-[10px] font-semibold text-white/70">{srv.category}</span>
+                          </td>
+                          <td className="p-4 font-geist">{srv.icon}</td>
+                          <td className="p-4">
+                            <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold font-geist uppercase tracking-wider ${srv.isCore ? "bg-[#00e3fd]/15 text-[#00e3fd]" : "bg-white/5 text-white/45"}`}>{srv.isCore ? "Core" : "Regular"}</span>
+                          </td>
+                          <td className="p-4 text-right">
+                            <button
+                              onClick={() => handleDeleteService(srv.id)}
+                              className="p-1.5 rounded bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white text-red-400 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "brands" && (
+            /* --- BRANDS MANAGER PANEL --- */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white/50">{brandsState.length} Brands managed</span>
+                <button
+                  onClick={() => setIsBrandFormOpen(true)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold text-xs shadow transition-all"
+                >
+                  <Plus className="h-4.5 w-4.5" />
+                  Add Brand
+                </button>
+              </div>
+
+              {isBrandFormOpen && (
+                <div className="glass-card rounded-xl border border-[#00e3fd]/20 bg-[#191c1e] p-6 shadow-xl space-y-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                    <h3 className="text-base font-bold font-display text-white">Add New Partner Brand</h3>
+                    <button onClick={() => setIsBrandFormOpen(false)} className="p-1 rounded-lg text-white/40 hover:bg-white/5">
+                      <X className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleBrandSubmit} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Brand Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={brandForm.name}
+                          onChange={(e) => setBrandForm((b) => ({ ...b, name: e.target.value }))}
+                          placeholder="e.g. TP-Link"
+                          className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Brand Logo URL *</label>
+                        <input
+                          type="text"
+                          required
+                          value={brandForm.logoUrl}
+                          onChange={(e) => setBrandForm((b) => ({ ...b, logoUrl: e.target.value }))}
+                          placeholder="e.g. https://logo-domain.com/logo.png"
+                          className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/5">
+                      <button type="button" onClick={() => setIsBrandFormOpen(false)} className="px-4 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 font-semibold text-white transition-colors">Cancel</button>
+                      <button type="submit" className="px-6 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold shadow">Add Brand</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                {brandsState.map((b) => (
+                  <div key={b.id} className="glass-card rounded-xl border border-white/5 p-6 bg-[#191c1e] flex flex-col items-center justify-between gap-4 text-center">
+                    <div className="h-12 w-full flex items-center justify-center grayscale opacity-60">
+                      <img src={b.logoUrl} alt={b.name} className="max-h-full max-w-full object-contain" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm font-display">{b.name}</h4>
+                    </div>
+                    <button
+                      onClick={() => handleDeleteBrand(b.id)}
+                      className="w-full py-1.5 rounded bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 text-[10px] font-bold transition-colors flex items-center justify-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete Brand
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === "testimonials" && (
+            /* --- TESTIMONIALS MANAGER PANEL --- */
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white/50">{testimonialsState.length} Testimonials posted</span>
+                <button
+                  onClick={() => setIsTestimonialFormOpen(true)}
+                  className="flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold text-xs shadow transition-all"
+                >
+                  <Plus className="h-4.5 w-4.5" />
+                  Add Testimonial
+                </button>
+              </div>
+
+              {isTestimonialFormOpen && (
+                <div className="glass-card rounded-xl border border-[#00e3fd]/20 bg-[#191c1e] p-6 shadow-xl space-y-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                    <h3 className="text-base font-bold font-display text-white">Add Customer Testimonial</h3>
+                    <button onClick={() => setIsTestimonialFormOpen(false)} className="p-1 rounded-lg text-white/40 hover:bg-white/5">
+                      <X className="h-4.5 w-4.5" />
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleTestimonialSubmit} className="space-y-4 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Customer Name *</label>
+                        <input
+                          type="text"
+                          required
+                          value={testimonialForm.customerName}
+                          onChange={(e) => setTestimonialForm((t) => ({ ...t, customerName: e.target.value }))}
+                          placeholder="e.g. John Doe"
+                          className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Customer Role / Business Name</label>
+                        <input
+                          type="text"
+                          value={testimonialForm.role}
+                          onChange={(e) => setTestimonialForm((t) => ({ ...t, role: e.target.value }))}
+                          placeholder="e.g. CTO, Vertex Systems"
+                          className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Rating (1-5) *</label>
+                          <select
+                            value={testimonialForm.rating}
+                            onChange={(e) => setTestimonialForm((t) => ({ ...t, rating: parseInt(e.target.value) }))}
+                            className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                          >
+                            <option value="5">5 Stars</option>
+                            <option value="4">4 Stars</option>
+                            <option value="3">3 Stars</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Avatar Image URL</label>
+                          <input
+                            type="text"
+                            value={testimonialForm.avatarUrl}
+                            onChange={(e) => setTestimonialForm((t) => ({ ...t, avatarUrl: e.target.value }))}
+                            placeholder="Optional"
+                            className="w-full rounded-lg glass-input px-3 py-2 text-xs"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-white/60 mb-1.5 font-geist uppercase text-[9px] font-bold tracking-wider">Feedback Content *</label>
+                      <textarea
+                        required
+                        rows={3}
+                        value={testimonialForm.content}
+                        onChange={(e) => setTestimonialForm((t) => ({ ...t, content: e.target.value }))}
+                        placeholder="Detailed review text written by the client..."
+                        className="w-full rounded-lg glass-input px-3 py-2 text-xs resize-none"
+                      />
+                    </div>
+
+                    <div className="pt-4 flex items-center justify-end gap-3 border-t border-white/5">
+                      <button type="button" onClick={() => setIsTestimonialFormOpen(false)} className="px-4 py-2.5 rounded-lg border border-white/10 hover:bg-white/5 font-semibold text-white transition-colors">Cancel</button>
+                      <button type="submit" className="px-6 py-2.5 rounded-lg bg-[#00e3fd] hover:bg-[#bdf4ff] text-[#101415] font-bold shadow">Post Testimonial</button>
+                    </div>
+                  </form>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {testimonialsState.map((t) => (
+                  <div key={t.id} className="glass-card rounded-xl border border-white/5 p-6 bg-[#191c1e] flex flex-col justify-between gap-4 shadow-lg">
+                    <div className="space-y-3">
+                      <div className="flex gap-1 text-[#00e3fd]">
+                        {[...Array(t.rating)].map((_, i) => (
+                          <Star key={i} className="h-3.5 w-3.5 fill-current" />
+                        ))}
+                      </div>
+                      <p className="text-white/70 text-xs italic font-sans">"{t.content}"</p>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-white/5 pt-4">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/5 border border-white/10 font-bold text-xs text-white shrink-0">
+                          {t.customerName.charAt(0)}
+                        </div>
+                        <div>
+                          <h4 className="text-xs font-bold text-white leading-none">{t.customerName}</h4>
+                          <span className="text-[10px] text-white/40 mt-1 block">{t.role || "Client"}</span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleDeleteTestimonial(t.id)}
+                        className="p-1 rounded bg-red-500/10 border border-red-500/20 hover:bg-red-500 hover:text-white text-red-400 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

@@ -6,7 +6,7 @@ import { getCmsSettings } from "@/services/cms";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [cms, setCms] = useState<any>({
-    contact_address: "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001",
+    contact_address: "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street,Bhavnagar, Gujarat 364001",
     contact_phone: "+91 75758 24006",
     contact_email: "harshildumaniya28@gmail.com",
     business_hours: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed",
@@ -104,7 +104,7 @@ export default function Footer() {
             </h4>
             <div className="w-full relative aspect-square md:aspect-[4/3] rounded-lg overflow-hidden border border-white/10 bg-[#191c1e] shadow-md group">
               <iframe
-                src={`https://maps.google.com/maps?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(cms.contact_address || "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001")}&t=&z=14&ie=UTF8&iwloc=&output=embed`}
                 width="100%"
                 height="100%"
                 style={{ border: 0, filter: "invert(90%) hue-rotate(180deg) brightness(95%) contrast(90%)" }}

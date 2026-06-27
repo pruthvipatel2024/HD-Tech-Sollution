@@ -84,22 +84,15 @@ async function main() {
   // 4. Create Services
   console.log("Seeding services...");
   const services = [
-    { name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail systems.", category: "Computer", isCore: true },
-    { name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops.", category: "Computer", isCore: true },
-    { name: "Desktop PCs", icon: "Cpu", description: "High-end custom computer towers configured to your specifications.", category: "Computer", isCore: false },
-    { name: "Gaming PCs", icon: "Gamepad2", description: "Custom gaming rigs optimized with performance liquid loops and RGB lighting.", category: "Computer", isCore: true },
-    { name: "Accessories", icon: "Keyboard", description: "Peripherals, ergonomic keypads, headsets, and SSD storage components.", category: "Computer", isCore: false },
-    { name: "Networking", icon: "Wifi", description: "Integrated server architectures, switches, firewalls, and enterprise LAN setups.", category: "Networking", isCore: true },
-    { name: "LAN Setup", icon: "Network", description: "Structured Ethernet routing, patch panels, and copper cabling design.", category: "Networking", isCore: false },
-    { name: "WAN Setup", icon: "Globe", description: "Multiplexed wide area connections, routing protocols, and proxy tunnels.", category: "Networking", isCore: false },
-    { name: "WiFi Setup", icon: "Router", description: "High-throughput WiFi 6 Access Point setup and channel loading audits.", category: "Networking", isCore: false },
-    { name: "CCTV Installation", icon: "Video", description: "AI security camera deployments, NVR nodes, and remote streaming links.", category: "CCTV", isCore: true },
-    { name: "Printer Sales", icon: "Printer", description: "Office laserjets, barcode printing, scanner nodes, and ink cartridges.", category: "Computer", isCore: false },
-    { name: "Repair Services", icon: "Wrench", description: "Hardware diagnostics, screen repairs, battery swapping, and diagnostics.", category: "Repair", isCore: true },
-    { name: "AMC Maintenance", icon: "ShieldCheck", description: "Annual maintenance contracts for corporate setups, servers, and networks.", category: "Repair", isCore: true },
-    { name: "Custom PC Build", icon: "Flame", description: "Commissioned water loops, case mods, and benchmark tuning.", category: "Computer", isCore: false },
-    { name: "Data Recovery", icon: "Database", description: "Forensics data restoration, HDD swapping, and clean room SSD recovery.", category: "Repair", isCore: false },
-    { name: "Server Installation", icon: "Server", description: "Network Attached Storage (NAS) configurations and rack mount arrays.", category: "Networking", isCore: false }
+    { name: "Computer Sales", icon: "Monitor", description: "Premium customized corporate desktops, dual-GPU workstations, and retail computer systems.", category: "Sales", isCore: true },
+    { name: "Laptop Sales", icon: "Laptop", description: "Business-class ultrabooks, lightweight notebooks, and productivity laptops from leading brands.", category: "Sales", isCore: true },
+    { name: "Computer Repair", icon: "Wrench", description: "Hardware diagnostics, motherboard repair, component replacement, and system optimization.", category: "Repair", isCore: true },
+    { name: "Laptop Repair", icon: "Cpu", description: "Screen replacement, keyboard fix, battery swapping, and advanced chip-level diagnostics.", category: "Repair", isCore: true },
+    { name: "Networking Solutions", icon: "Wifi", description: "Structured LAN/WAN cabling, enterprise-grade routers, high-throughput switch networks, and WiFi audits.", category: "Networking", isCore: true },
+    { name: "CCTV Installation", icon: "Video", description: "High-fidelity IP security camera deployments, NVR storage setups, and remote mobile viewing links.", category: "CCTV", isCore: true },
+    { name: "Printer Services", icon: "Printer", description: "Printer setup, toner refilling, scanner configuration, and routine printing hardware servicing.", category: "Services", isCore: false },
+    { name: "Accessories", icon: "Keyboard", description: "Mechanical keypads, high-precision mice, SSD expansions, cables, and premium tech accessories.", category: "Sales", isCore: false },
+    { name: "Annual Maintenance Contracts (AMC)", icon: "ShieldCheck", description: "Comprehensive round-the-clock IT support, backup monitoring, and systems AMC for offices.", category: "AMC", isCore: true }
   ];
 
   const dbServices: any[] = [];
@@ -204,9 +197,9 @@ async function main() {
 
   // 6. Create Gallery Items & Gallery Images
   console.log("Seeding gallery...");
-  const cctvService = dbServices.find(s => s.name === "CCTV Installation");
-  const netService = dbServices.find(s => s.name === "Networking");
-  const salesService = dbServices.find(s => s.name === "Computer Sales");
+  const cctvService = dbServices.find(s => s.name === "CCTV Installation") || dbServices[0];
+  const netService = dbServices.find(s => s.name === "Networking Solutions") || dbServices[0];
+  const salesService = dbServices.find(s => s.name === "Computer Sales") || dbServices[0];
 
   const galleryData = [
     {
@@ -312,21 +305,29 @@ async function main() {
   // 9. Create CMS Settings
   console.log("Seeding CMS settings...");
   const cmsSettings = [
-    { key: "hero_title", value: "Crystalline IT & Advanced Security Solutions" },
-    { key: "hero_subtitle", value: "Providing high-performance desktops, expert wireless networking configurations, and industrial CCTV solutions for modern corporate and retail clients." },
-    { key: "about_title", value: "Pioneering Tech Infrastructure" },
-    { key: "about_text", value: "HD Tech Solutions is a trusted provider of enterprise hardware systems, CCTV surveillance networking, LAN/WAN configurations, and Annual Maintenance Contracts (AMC). With over a decade of domain expertise, our mission is to deliver secure, scalable, and premium technological infrastructure to empower businesses." },
+    { key: "hero_title", value: "Smart Technology. Better Solutions." },
+    { key: "hero_subtitle", value: "One Stop Solution For All Your IT Needs." },
+    { key: "about_title", value: "Expert Tech Infrastructure & Services" },
+    { key: "about_text", value: "At HD Tech Solutions, we specialize in high-quality computer sales, laptop sales, networking solutions, CCTV installation, computer repair, laptop repair, accessories, AMC services, and complete office IT setups. With over 2 years of active industry experience and a firm customer-first approach, we aim to provide reliable, top-tier technology support and maintenance services tailored to the needs of both local homes and businesses." },
     { key: "company_name", value: "HD Tech Solutions" },
-    { key: "contact_address", value: "Q4JX+M5Q, Unnamed Road, Karchaliya Para, Bhavnagar, Gujarat 364001" },
+    { key: "contact_address", value: "Q4JX+M5Q, Mama Kotha Road, Near Khara Kuva, Hira Street, Karchaliya Para, Bhavnagar, Gujarat 364001" },
     { key: "contact_phone", value: "+91 75758 24006" },
     { key: "contact_whatsapp", value: "917575824006" },
     { key: "contact_email", value: "harshildumaniya28@gmail.com" },
     { key: "business_hours", value: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed" },
-    { key: "google_maps_url", value: "https://maps.google.com/?q=Q4JX%2BM5Q%2C%20Unnamed%20Road%2C%20Karchaliya%20Para%2C%20Bhavnagar%2C%20Gujarat%20364001" },
+    { key: "google_maps_url", value: "https://maps.google.com/?q=Q4JX%2BM5Q%2C%20Mama%20Kotha%20Road%2C%20Near%20Khara%20Kuva%2C%20Hira%20Street%2C%20Karchaliya%20Para%2C%20Bhavnagar%2C%20Gujarat%20364001" },
     { key: "social_facebook", value: "https://facebook.com" },
     { key: "social_instagram", value: "https://instagram.com" },
     { key: "social_linkedin", value: "https://linkedin.com" },
-    { key: "why_choose_us_pillars", value: "Certified Technicians, High-Performance Parts, SLA Business Support, 24/7 Security Architecture" }
+    { key: "stat_experience_value", value: "2+" },
+    { key: "stat_experience_label", value: "Years of Experience" },
+    { key: "stat_assembled_value", value: "350+" },
+    { key: "stat_assembled_label", value: "Computer Systems Assembled" },
+    { key: "stat_cctv_value", value: "40+" },
+    { key: "stat_cctv_label", value: "Active CCTV Nodes Installed" },
+    { key: "stat_partner_value", value: "Trusted" },
+    { key: "stat_partner_label", value: "IT Partner for Homes & Businesses" },
+    { key: "why_choose_us_pillars", value: "Genuine Products, Certified Technicians, Affordable Pricing, Fast Support, Professional Installation, Warranty Assistance, After-Sales Support, Customer Satisfaction" }
   ];
 
   for (const setting of cmsSettings) {
