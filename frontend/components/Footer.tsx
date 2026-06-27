@@ -1,9 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Cpu, Phone, Mail, MapPin, Clock } from "lucide-react";
+import { getCmsSettings } from "@/services/cms";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [cms, setCms] = useState<any>({
+    contact_address: "Hira Street, Shreeji Nivas, Near Khara Kuva, Bhavnagar - 364001",
+    contact_phone: "+91 75758 24006",
+    contact_email: "harshildumaniya28@gmail.com",
+    business_hours: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed",
+  });
+
+  useEffect(() => {
+    getCmsSettings()
+      .then((data) => {
+        if (data && Object.keys(data).length > 0) {
+          setCms((prev: any) => ({ ...prev, ...data }));
+        }
+      })
+      .catch((err) => console.error("Failed to load footer CMS settings:", err));
+  }, []);
 
   return (
     <footer className="relative mt-auto border-t border-white/5 bg-[#0b0f10] text-[#e0e3e5] py-12 md:py-16 overflow-hidden">
@@ -55,19 +72,27 @@ export default function Footer() {
             <ul className="space-y-2.5 text-white/60">
               <li className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-[#00e3fd] shrink-0 mt-0.5" />
-                <span>404 Crystalline Plaza, Tech Zone, Metro City, 10001</span>
+                <span>{cms.contact_address}</span>
               </li>
               <li className="flex items-center gap-2">
                 <Phone className="h-4 w-4 text-[#00e3fd] shrink-0" />
-                <span>+91 98765 43210</span>
+                <span>
+                  <a href={`tel:${cms.contact_phone}`} className="hover:text-white transition-colors">
+                    {cms.contact_phone}
+                  </a>
+                </span>
               </li>
               <li className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-[#00e3fd] shrink-0" />
-                <span>contact@hdtechsolutions.com</span>
+                <span>
+                  <a href={`mailto:${cms.contact_email}`} className="hover:text-white transition-colors">
+                    {cms.contact_email}
+                  </a>
+                </span>
               </li>
               <li className="flex items-start gap-2">
                 <Clock className="h-4 w-4 text-[#00e3fd] shrink-0 mt-0.5" />
-                <span>Mon - Sat: 10:00 AM - 8:00 PM<br />Sunday: Closed</span>
+                <span>{cms.business_hours}</span>
               </li>
             </ul>
           </div>
