@@ -34,10 +34,15 @@ export async function list(req: Request, res: Response): Promise<void> {
       orderBy,
     });
 
+    const mappedList = list.map((prod) => ({
+      ...prod,
+      imageUrls: prod.images.map((img) => img.url),
+    }));
+
     res.status(200).json({
       success: true,
       message: "Products retrieved successfully",
-      data: list,
+      data: mappedList,
     });
   } catch (error) {
     logger.error("List products controller error:", error);
@@ -93,10 +98,15 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
       },
     });
 
+    const mappedProduct = {
+      ...product,
+      imageUrls: product.images.map((img) => img.url),
+    };
+
     res.status(201).json({
       success: true,
       message: "Product created successfully",
-      data: product,
+      data: mappedProduct,
     });
   } catch (error) {
     logger.error("Create product controller error:", error);
@@ -160,10 +170,15 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
       },
     });
 
+    const mappedProduct = {
+      ...updatedProduct,
+      imageUrls: updatedProduct.images.map((img) => img.url),
+    };
+
     res.status(200).json({
       success: true,
       message: "Product updated successfully",
-      data: updatedProduct,
+      data: mappedProduct,
     });
   } catch (error) {
     logger.error("Update product controller error:", error);

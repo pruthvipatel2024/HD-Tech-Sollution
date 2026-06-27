@@ -11,10 +11,16 @@ export async function list(req: Request, res: Response): Promise<void> {
       orderBy: { order: "asc" },
     });
 
+    const mappedList = list.map((item) => ({
+      ...item,
+      imageUrls: item.images.map((img) => img.url),
+      service: item.service?.name || "",
+    }));
+
     res.status(200).json({
       success: true,
       message: "Gallery items retrieved successfully",
-      data: list,
+      data: mappedList,
     });
   } catch (error) {
     logger.error("List gallery error:", error);
@@ -74,10 +80,16 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
       },
     });
 
+    const mappedItem = {
+      ...item,
+      imageUrls: item.images.map((img) => img.url),
+      service: item.service?.name || "",
+    };
+
     res.status(201).json({
       success: true,
       message: "Gallery item added successfully",
-      data: item,
+      data: mappedItem,
     });
   } catch (error) {
     logger.error("Create gallery item error:", error);
