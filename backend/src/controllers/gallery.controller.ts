@@ -11,9 +11,9 @@ export async function list(req: Request, res: Response): Promise<void> {
       orderBy: { order: "asc" },
     });
 
-    const mappedList = list.map((item) => ({
+    const mappedList = list.map((item: any) => ({
       ...item,
-      imageUrls: item.images.map((img) => img.url),
+      imageUrls: item.images.map((img: any) => img.url),
       service: item.service?.name || "",
     }));
 
@@ -82,7 +82,7 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedItem = {
       ...item,
-      imageUrls: item.images.map((img) => img.url),
+      imageUrls: item.images.map((img: any) => img.url),
       service: item.service?.name || "",
     };
 

@@ -6,7 +6,7 @@ import { getCmsSettings } from "@/services/cms";
 export default function Footer() {
   const currentYear = new Date().getFullYear();
   const [cms, setCms] = useState<any>({
-    contact_address: "Hira Street, Shreeji Nivas, Near Khara Kuva, Bhavnagar - 364001",
+    contact_address: "Hira Street, Shreeji Nivas, Near Khara Kuva, Bhavnagar - 364001 ",
     contact_phone: "+91 75758 24006",
     contact_email: "harshildumaniya28@gmail.com",
     business_hours: "Mon - Sat: 10:00 AM - 8:00 PM, Sunday: Closed",

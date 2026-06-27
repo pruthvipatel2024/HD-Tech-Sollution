@@ -34,9 +34,9 @@ export async function list(req: Request, res: Response): Promise<void> {
       orderBy,
     });
 
-    const mappedList = list.map((prod) => ({
+    const mappedList = list.map((prod: any) => ({
       ...prod,
-      imageUrls: prod.images.map((img) => img.url),
+      imageUrls: prod.images.map((img: any) => img.url),
     }));
 
     res.status(200).json({
@@ -100,7 +100,7 @@ export async function create(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedProduct = {
       ...product,
-      imageUrls: product.images.map((img) => img.url),
+      imageUrls: product.images.map((img: any) => img.url),
     };
 
     res.status(201).json({
@@ -172,7 +172,7 @@ export async function update(req: AuthenticatedRequest, res: Response): Promise<
 
     const mappedProduct = {
       ...updatedProduct,
-      imageUrls: updatedProduct.images.map((img) => img.url),
+      imageUrls: updatedProduct.images.map((img: any) => img.url),
     };
 
     res.status(200).json({
