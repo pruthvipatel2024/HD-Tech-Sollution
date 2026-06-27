@@ -121,8 +121,13 @@ export default function Footer() {
         {/* Bottom Block */}
         <div className="mt-12 pt-6 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 font-sans text-xs text-white/40">
           <p>© {currentYear} HD Tech Solutions. All rights reserved.</p>
-          <div className="flex gap-6">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-6 items-center text-center sm:text-left">
             <span className="text-[#00e3fd]/60">Crystalline Design System</span>
+            <span className="hidden sm:inline text-white/10">|</span>
+            <span>
+              Developed & Managed by{" "}
+              <span className="text-[#00e3fd] font-semibold hover:text-[#2380ff] transition-colors duration-200">Pruthvi Surati</span>
+            </span>
           </div>
         </div>
       </div>
