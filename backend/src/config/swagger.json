@@ -1,0 +1,209 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "HD Tech Solutions API Documentation",
+    "version": "1.0.0",
+    "description": "Self-documenting production-ready REST API for HD Tech Solutions. Serves site parameters, inventories, and inquiry controls."
+  },
+  "servers": [
+    {
+      "url": "/api",
+      "description": "Production/Development Endpoint Root"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "token",
+        "description": "HTTP-Only secure JWT session token."
+      }
+    }
+  },
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "summary": "Admin Login",
+        "description": "Authenticates credentials and sets HTTP-Only secure cookies for access and refresh sessions.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Success message with admin profile payload" },
+          "400": { "description": "Validation errors" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Admin Logout",
+        "description": "Clears HTTP-Only access and refresh cookies from browser storage.",
+        "responses": {
+          "200": { "description": "Logged out successfully" }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "Refresh Session Token",
+        "description": "Uses the active refresh token cookie to issue a new access token.",
+        "responses": {
+          "200": { "description": "Session refreshed" },
+          "401": { "description": "Missing or invalid refresh token" }
+        }
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "summary": "Get Current Session Details",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "Profile detail of the logged-in administrator" },
+          "401": { "description": "Unauthorized session" }
+        }
+      }
+    },
+    "/products": {
+      "get": {
+        "summary": "List Products",
+        "description": "Retrieve catalog items. Supports category filters and text search parameters.",
+        "parameters": [
+          { "name": "categoryId", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "search", "in": "query", "required": false, "schema": { "type": "string" } },
+          { "name": "sort", "in": "query", "required": false, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List of products matching filters" }
+        }
+      },
+      "post": {
+        "summary": "Create Product Listing",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "description", "price", "categoryId", "imageUrls"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "description": { "type": "string" },
+                  "price": { "type": "number" },
+                  "availability": { "type": "boolean" },
+                  "categoryId": { "type": "string" },
+                  "imageUrls": { "type": "array", "items": { "type": "string" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Product created" },
+          "401": { "description": "Unauthorized" }
+        }
+      }
+    },
+    "/inquiries": {
+      "post": {
+        "summary": "Submit Service Inquiry",
+        "description": "Public route to send hardware requests or support tickets.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["customerName", "mobileNumber", "serviceId", "message"],
+                "properties": {
+                  "customerName": { "type": "string" },
+                  "mobileNumber": { "type": "string" },
+                  "email": { "type": "string" },
+                  "serviceId": { "type": "string" },
+                  "message": { "type": "string" },
+                  "attachments": { "type": "array", "items": { "type": "object" } }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Inquiry accepted" }
+        }
+      },
+      "get": {
+        "summary": "List Inquiries",
+        "security": [{ "cookieAuth": [] }],
+        "responses": {
+          "200": { "description": "List of inquiries with notes and attachments" }
+        }
+      }
+    },
+    "/cms": {
+      "get": {
+        "summary": "Get Website CMS Configs",
+        "responses": {
+          "200": { "description": "CMS key-value pairs map" }
+        }
+      },
+      "put": {
+        "summary": "Upsert CMS Setting",
+        "security": [{ "cookieAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["key", "value"],
+                "properties": {
+                  "key": { "type": "string" },
+                  "value": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "CMS value saved" }
+        }
+      }
+    },
+    "/upload": {
+      "post": {
+        "summary": "Upload File",
+        "description": "Processes file uploads (max 10MB) and returns public secure URL from Cloudinary or local backup folders.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": { "type": "string", "format": "binary" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Upload success, returns file URL" }
+        }
+      }
+    }
+  }
+}
